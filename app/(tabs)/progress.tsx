@@ -6,6 +6,7 @@ import { getAllCompletedDays, getUserSetting } from '../../database/db';
 import { calculateCurrentDay, calculateStreak } from '../../utils/schedule-calculator';
 import { SURAH_LIST } from '../../data/surah-metadata';
 import { Ionicons } from '@expo/vector-icons';
+import { ProgressRing } from '../../components/progress/ProgressRing';
 
 export default function ProgressScreen() {
   const [loading, setLoading] = useState(true);
@@ -49,25 +50,20 @@ export default function ProgressScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.headerTitle}>Progress Analytics</Text>
 
-        {/* Overall Progress Ring Card */}
-        <View style={styles.mainProgressCard}>
-          <View style={styles.statRow}>
-            <View style={styles.circleStat}>
-              <Text style={styles.percentText}>{percentComplete}%</Text>
-              <Text style={styles.percentLabel}>Quran Completed</Text>
-            </View>
+        {/* Overall Progress Ring */}
+        <View style={styles.progressRingContainer}>
+          <ProgressRing percentage={parseFloat(percentComplete)} size={200} strokeWidth={16} />
+        </View>
 
-            <View style={styles.rightStats}>
-              <View style={styles.smallStatBox}>
-                <Text style={styles.smallStatNumber}>{totalFacesCompleted}</Text>
-                <Text style={styles.smallStatLabel}>Faces Memorized</Text>
-              </View>
-
-              <View style={styles.smallStatBox}>
-                <Text style={styles.smallStatNumber}>{1206 - totalFacesCompleted}</Text>
-                <Text style={styles.smallStatLabel}>Faces Remaining</Text>
-              </View>
-            </View>
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{totalFacesCompleted}</Text>
+            <Text style={styles.statLabel}>Faces Done</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statNumber}>{1206 - totalFacesCompleted}</Text>
+            <Text style={styles.statLabel}>Remaining</Text>
           </View>
         </View>
 
