@@ -1,12 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, FlatList, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '../../constants/theme';
 import scheduleData from '../../data/schedule-data.json';
 import { Ionicons } from '@expo/vector-icons';
+import { CalendarHeatMap } from '../../components/schedule/CalendarHeatMap';
+import { getAllCompletedDays, getUserSetting } from '../../database/db';
+import { calculateCurrentDay } from '../../utils/schedule-calculator';
 
 export default function ScheduleScreen() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [completedDays, setCompletedDays] = useState<number[]>([]);
+  const [currentDay, setCurrentDay] = useState(1);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    const completed = await getAllCompletedDays();
+    setCompletedDays(completed);
+    
+    const startDate = await getUserSetting('startDate', new Date().toISOString());
+    const day = calculateCurrentDay(startDate);
+    setCurrentDay(day);
+  };
 
   const filteredSchedule = scheduleData.filter((item: any) => {
     if (!searchQuery) return true;
@@ -49,6 +67,9 @@ export default function ScheduleScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text style={styles.headerTitle}>1,206-Day Schedule</Text>
+
+        {/* Calendar Heat Map */}
+        <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
 
         {/* Search Bar */}
         <View style={styles.searchBar}>
