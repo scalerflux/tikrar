@@ -1,4 +1,6 @@
 import scheduleData from '../data/schedule-data.json';
+import pageAyahMap from '../data/page-ayah-map.json';
+import { SURAH_LIST } from '../data/surah-metadata';
 
 export interface ScheduleItem {
   dayNumber: number;
@@ -37,6 +39,71 @@ export function getSurahPageNumber(faceNumber: string): number {
   const parts = faceNumber.split(' ');
   const page = parseInt(parts[0], 10);
   return isNaN(page) ? 1 : page;
+}
+
+interface PageAyahInfo {
+  s: number;
+  sa: number;
+  e: number;
+  ea: number;
+  n: number;
+}
+
+export interface AyahRange {
+  page: number;
+  half: 'h1' | 'h2' | null;
+  surahNumber: number;
+  startAyah: number;
+  endAyah: number;
+  totalAyahs: number;
+}
+
+function enumeratePageAyahs(info: PageAyahInfo): { surah: number; ayah: number }[] {
+  const result: { surah: number; ayah: number }[] = [];
+  for (let s = info.s; s <= info.e; s++) {
+    const totalVerses = SURAH_LIST[s - 1]?.totalVerses ?? 0;
+    const fromAyah = s === info.s ? info.sa : 1;
+    const toAyah = s === info.e ? info.ea : totalVerses;
+    for (let a = fromAyah; a <= toAyah; a++) {
+      result.push({ surah: s, ayah: a });
+    }
+  }
+  return result;
+}
+
+export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
+  if (!faceNumber) return null;
+  const match = faceNumber.trim().match(/^(\d+)\s*(h1|h2)?$/i);
+  if (!match) return null;
+  const page = parseInt(match[1], 10);
+  const half = match[2] ? (match[2].toLowerCase() as 'h1' | 'h2') : null;
+  const info = (pageAyahMap as Record<string, PageAyahInfo>)[String(page)];
+  if (!info) return null;
+
+  const ayahs = enumeratePageAyahs(info);
+  if (ayahs.length === 0) return null;
+
+  if (!half) {
+    return {
+      page,
+      half: null,
+      surahNumber: ayahs[0].surah,
+      startAyah: ayahs[0].ayah,
+      endAyah: ayahs[ayahs.length - 1].ayah,
+      totalAyahs: ayahs.length,
+    };
+  }
+
+  const mid = Math.ceil(ayahs.length / 2);
+  const selected = half === 'h1' ? ayahs.slice(0, mid) : ayahs.slice(mid);
+  return {
+    page,
+    half,
+    surahNumber: selected[0].surah,
+    startAyah: selected[0].ayah,
+    endAyah: selected[selected.length - 1].ayah,
+    totalAyahs: selected.length,
+  };
 }
 
 export function calculateStreak(completedDays: number[]): { currentStreak: number; maxStreak: number } {

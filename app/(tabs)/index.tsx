@@ -149,6 +149,7 @@ export default function TodayScreen() {
         >
           <AudioPlayerComponent
             surahName={scheduleItem.surahName}
+            faceNumber={scheduleItem.faceNumber}
             onCompleted3Times={() => {
               if (progress.phaseListening === 0) {
                 togglePhase('phaseListening');

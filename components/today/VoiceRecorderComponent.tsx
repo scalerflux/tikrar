@@ -11,7 +11,11 @@ interface VoiceRecorderComponentProps {
 export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
   onCompleted3Times,
 }) => {
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY, (status) => {
+    if (status.isFinished && status.url) {
+      setRecordedUri(status.url);
+    }
+  });
   const playbackPlayer = useAudioPlayer();
   const playbackStatus = useAudioPlayerStatus(playbackPlayer);
   const [isRecording, setIsRecording] = useState(false);
@@ -48,7 +52,9 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
       setIsRecording(false);
       await recorder.stop();
       const uri = recorder.uri;
-      setRecordedUri(uri);
+      if (uri) {
+        setRecordedUri(uri);
+      }
 
       setReciteCount(prev => {
         const next = prev + 1;

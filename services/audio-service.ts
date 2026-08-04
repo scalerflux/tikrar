@@ -8,6 +8,8 @@ export interface AudioPlayState {
   positionMillis: number;
   durationMillis: number;
   playCount: number;
+  ayahIndex?: number;
+  totalAyahs?: number;
 }
 
 export class AudioService {
@@ -15,13 +17,73 @@ export class AudioService {
 
   static getSurahAudioUrl(surahNumber: number): string {
     const padSurah = surahNumber.toString().padStart(3, '0');
-    return `https://server14.mp3quran.net/qtn/${padSurah}.mp3`;
+    return `https://server6.mp3quran.net/qtm/${padSurah}.mp3`;
   }
 
   static getAyahAudioUrl(surahNumber: number, ayahNumber: number): string {
     const padSurah = surahNumber.toString().padStart(3, '0');
     const padAyah = ayahNumber.toString().padStart(3, '0');
     return `${RECITER_BASE_URL}${padSurah}${padAyah}.mp3`;
+  }
+
+  static async playAyahSequence(
+    urls: string[],
+    onStatusUpdate?: (status: AudioPlayState) => void
+  ): Promise<void> {
+    try {
+      this.stopAudio();
+
+      await setAudioModeAsync({
+        playsInSilentMode: true,
+        interruptionMode: 'doNotMix',
+      });
+
+      if (urls.length === 0) return;
+
+      let index = 0;
+      const player = createAudioPlayer({ uri: urls[0] });
+      this.player = player;
+
+      player.addListener('playbackStatusUpdate', (status) => {
+        if (!status.isLoaded) return;
+        if (onStatusUpdate) {
+          onStatusUpdate({
+            isPlaying: status.playing,
+            positionMillis: Math.round(status.currentTime * 1000),
+            durationMillis: Math.round(status.duration * 1000),
+            playCount: 0,
+            ayahIndex: index,
+            totalAyahs: urls.length,
+          });
+        }
+        if (status.didJustFinish) {
+          index++;
+          if (index >= urls.length) {
+            if (onStatusUpdate) {
+              onStatusUpdate({
+                isPlaying: false,
+                positionMillis: 0,
+                durationMillis: 0,
+                playCount: 1,
+                ayahIndex: urls.length - 1,
+                totalAyahs: urls.length,
+              });
+            }
+          } else if (this.player === player) {
+            try {
+              player.replace({ uri: urls[index] });
+              player.play();
+            } catch (e) {
+              console.error('Error advancing ayah:', e);
+            }
+          }
+        }
+      });
+
+      player.play();
+    } catch (error) {
+      console.error('Error playing audio sequence:', error);
+    }
   }
 
   static async playAudio(
