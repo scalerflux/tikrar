@@ -1,0 +1,28 @@
+image: node:20
+
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - install
+  - test
+
+install:
+  stage: install
+  script:
+    - npm install
+  artifacts:
+    paths:
+      - node_modules/
+    expire_in: 1 day
+
+typecheck:
+  stage: test
+  script:
+    - npx tsc --noEmit
+
+tests:
+  stage: test
+  script:
+    - npm test -- --ci

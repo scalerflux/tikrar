@@ -8,7 +8,7 @@ import { AudioPlayerComponent } from '../../components/today/AudioPlayerComponen
 import { VoiceRecorderComponent } from '../../components/today/VoiceRecorderComponent';
 import { TafseerViewComponent } from '../../components/today/TafseerViewComponent';
 import { getScheduleItem, calculateCurrentDay, calculateStreak } from '../../utils/schedule-calculator';
-import { getUserSetting, getDailyProgress, saveDailyProgress, getAllCompletedDays, DailyProgressRow } from '../../database/db';
+import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow } from '../../database/db';
 
 export default function TodayScreen() {
   const [loading, setLoading] = useState(true);
@@ -24,8 +24,9 @@ export default function TodayScreen() {
   const loadTodayData = async () => {
     try {
       setLoading(true);
-      const startDate = await getUserSetting('startDate', new Date().toISOString());
-      const day = calculateCurrentDay(startDate);
+
+      const completed = await getAllCompletedDaysWithDates();
+      const day = calculateCurrentDay(completed.map((c) => c.dayNumber));
       setCurrentDay(day);
 
       const item = getScheduleItem(day) || getScheduleItem(1);
@@ -34,8 +35,7 @@ export default function TodayScreen() {
       const prog = await getDailyProgress(day);
       setProgress(prog);
 
-      const completed = await getAllCompletedDays();
-      const streakInfo = calculateStreak(completed);
+      const streakInfo = calculateStreak(completed.map((c) => c.completedDate).filter((d) => d.length > 0));
       setStreak(streakInfo.currentStreak);
     } catch (err) {
       console.warn('Error loading today data:', err);
@@ -51,6 +51,7 @@ export default function TodayScreen() {
         phaseConnection: 0,
         phaseRevision: 0,
         isComplete: 0,
+        completedDate: '',
         updatedAt: new Date().toISOString(),
       });
     } finally {

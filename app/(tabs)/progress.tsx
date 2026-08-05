@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '../../constants/theme';
-import { getAllCompletedDays, getUserSetting } from '../../database/db';
-import { calculateCurrentDay, calculateStreak } from '../../utils/schedule-calculator';
+import { getAllCompletedDaysWithDates } from '../../database/db';
+import { calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS } from '../../utils/schedule-calculator';
 import { SURAH_LIST } from '../../data/surah-metadata';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressRing } from '../../components/progress/ProgressRing';
@@ -12,7 +12,7 @@ export default function ProgressScreen() {
   const [loading, setLoading] = useState(true);
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [currentDay, setCurrentDay] = useState(1);
-  const [streakData, setStreakData] = useState({ currentStreak: 0, maxStreak: 0 });
+  const [streakData, setStreakData] = useState({ currentStreak: 0, longestStreak: 0, totalCompleted: 0 });
 
   useEffect(() => {
     loadProgressData();
@@ -20,21 +20,20 @@ export default function ProgressScreen() {
 
   const loadProgressData = async () => {
     setLoading(true);
-    const startDate = await getUserSetting('startDate', new Date().toISOString());
-    const day = calculateCurrentDay(startDate);
+    const completed = await getAllCompletedDaysWithDates();
+    setCompletedDays(completed.map((c) => c.dayNumber));
+
+    const day = calculateCurrentDay(completed.map((c) => c.dayNumber));
     setCurrentDay(day);
 
-    const completed = await getAllCompletedDays();
-    setCompletedDays(completed);
-
-    const streak = calculateStreak(completed);
+    const streak = calculateStreak(completed.map((c) => c.completedDate).filter((d) => d.length > 0));
     setStreakData(streak);
 
     setLoading(false);
   };
 
   const totalFacesCompleted = completedDays.length;
-  const totalFacesInQuran = 1206;
+  const totalFacesInQuran = TOTAL_PROGRAM_DAYS;
   const percentComplete = ((totalFacesCompleted / totalFacesInQuran) * 100).toFixed(1);
 
   if (loading) {
@@ -79,7 +78,7 @@ export default function ProgressScreen() {
 
           <View style={styles.streakBox}>
             <Ionicons name="trophy-outline" size={28} color={Theme.colors.accentGold} />
-            <Text style={styles.streakNum}>{streakData.maxStreak}</Text>
+            <Text style={styles.streakNum}>{streakData.longestStreak}</Text>
             <Text style={styles.streakLabel}>Best Streak (Days)</Text>
           </View>
         </View>
@@ -126,6 +125,34 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     marginBottom: Theme.spacing.md,
+  },
+  progressRingContainer: {
+    alignItems: 'center',
+    marginVertical: Theme.spacing.lg,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Theme.spacing.md,
+  },
+  statBox: {
+    backgroundColor: Theme.colors.bgCard,
+    borderRadius: Theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.md,
+    width: '45%',
+  },
+  statNumber: {
+    color: Theme.colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  statLabel: {
+    color: Theme.colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
   },
   mainProgressCard: {
     backgroundColor: Theme.colors.bgCard,

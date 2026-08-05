@@ -11,27 +11,97 @@ export interface ScheduleItem {
   connectionRange: string;
 }
 
+export const TOTAL_PROGRAM_DAYS = 1206;
+
 export function getScheduleItem(dayNumber: number): ScheduleItem | null {
-  if (dayNumber < 1 || dayNumber > 1206) {
+  if (dayNumber < 1 || dayNumber > TOTAL_PROGRAM_DAYS) {
     return null;
   }
   const item = scheduleData.find((d: any) => d.dayNumber === dayNumber);
   return item ? (item as ScheduleItem) : null;
 }
 
-export function calculateCurrentDay(startDateIso: string): number {
-  if (!startDateIso) return 1;
-  const start = new Date(startDateIso);
-  start.setHours(0, 0, 0, 0);
-  
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  
-  const diffTime = today.getTime() - start.getTime();
-  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-  
-  const calculatedDay = diffDays + 1; // Day 1 is start date
-  return Math.max(1, Math.min(1206, calculatedDay));
+/**
+ * Local calendar date ("YYYY-MM-DD") of the given Date, computed in the
+ * device timezone. Never derived from UTC components, so it cannot drift
+ * for users behind UTC.
+ */
+export function localDateString(date: Date = new Date()): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Parse a "YYYY-MM-DD" local date into a Date at local midnight. Using
+ * `new Date('YYYY-MM-DD')` would parse as UTC and shift the day for
+ * users behind UTC.
+ */
+export function parseLocalDateString(dateStr: string): Date {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+/** Whole days between two "YYYY-MM-DD" local dates (b - a). */
+export function daysBetweenDates(a: string, b: string): number {
+  const diff = parseLocalDateString(b).getTime() - parseLocalDateString(a).getTime();
+  return Math.round(diff / (1000 * 60 * 60 * 24));
+}
+
+/**
+ * The program day currently due. COMPLETION-DRIVEN: the next day is the
+ * first day not yet completed, regardless of how much calendar time has
+ * passed. A user who missed a week is still on day (completed + 1) and can
+ * catch up. A brand-new user with zero completions lands on day 1.
+ * The start date is only a log of when work began; it does not decide
+ * which face is due.
+ */
+export function calculateCurrentDay(completedDays: number[]): number {
+  const unique = new Set(Array.isArray(completedDays) ? completedDays : []);
+  return Math.max(1, Math.min(TOTAL_PROGRAM_DAYS, unique.size + 1));
+}
+
+export interface StreakInfo {
+  currentStreak: number;
+  longestStreak: number;
+  totalCompleted: number;
+}
+
+/**
+ * Streak over CALENDAR DATES ("YYYY-MM-DD", device local timezone).
+ * The current streak survives while the most recent completion is today
+ * or yesterday; anything older resets it to 0. A Set gives O(n) lookups
+ * and de-duplicates repeat completions.
+ */
+export function calculateStreak(completedDates: string[]): StreakInfo {
+  const raw = Array.isArray(completedDates) ? completedDates : [];
+  const dates = raw.filter((d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d));
+  const sorted = [...new Set(dates)].sort();
+  const totalCompleted = sorted.length;
+  if (totalCompleted === 0) {
+    return { currentStreak: 0, longestStreak: 0, totalCompleted: 0 };
+  }
+
+  let longestStreak = 0;
+  let run = 0;
+  let lastRun = 0;
+  let prev: string | null = null;
+
+  for (const date of sorted) {
+    run = prev !== null && daysBetweenDates(prev, date) === 1 ? run + 1 : 1;
+    if (run > longestStreak) {
+      longestStreak = run;
+    }
+    lastRun = run;
+    prev = date;
+  }
+
+  const today = localDateString();
+  const daysSinceLastCompletion = daysBetweenDates(prev!, today);
+  const currentStreak = daysSinceLastCompletion <= 1 ? lastRun : 0;
+
+  return { currentStreak, longestStreak, totalCompleted };
 }
 
 export function getSurahPageNumber(faceNumber: string): number {
@@ -104,36 +174,4 @@ export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
     endAyah: selected[selected.length - 1].ayah,
     totalAyahs: selected.length,
   };
-}
-
-export function calculateStreak(completedDays: number[]): { currentStreak: number; maxStreak: number } {
-  if (!completedDays || completedDays.length === 0) {
-    return { currentStreak: 0, maxStreak: 0 };
-  }
-  
-  const sorted = [...new Set(completedDays)].sort((a, b) => a - b);
-  let maxStreak = 0;
-  let currentRun = 0;
-  
-  for (let i = 0; i < sorted.length; i++) {
-    if (i === 0 || sorted[i] === sorted[i - 1] + 1) {
-      currentRun++;
-    } else {
-      currentRun = 1;
-    }
-    if (currentRun > maxStreak) {
-      maxStreak = currentRun;
-    }
-  }
-  
-  // Calculate current streak from last entry
-  let currentStreak = 0;
-  const lastDay = sorted[sorted.length - 1];
-  let check = lastDay;
-  while (sorted.includes(check)) {
-    currentStreak++;
-    check--;
-  }
-  
-  return { currentStreak, maxStreak };
 }
