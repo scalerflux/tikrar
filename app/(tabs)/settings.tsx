@@ -3,6 +3,7 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, TextInput 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Theme } from '../../constants/theme';
 import { getUserSetting, setUserSetting } from '../../database/db';
+import { localDateString } from '../../utils/schedule-calculator';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function SettingsScreen() {
@@ -14,7 +15,7 @@ export default function SettingsScreen() {
   }, []);
 
   const loadSettings = async () => {
-    const savedDate = await getUserSetting('startDate', new Date().toISOString().split('T')[0]);
+    const savedDate = await getUserSetting('startDate', localDateString());
     setStartDate(savedDate.split('T')[0]);
   };
 
@@ -23,7 +24,7 @@ export default function SettingsScreen() {
       Alert.alert('Invalid Date', 'Please enter a valid date in YYYY-MM-DD format.');
       return;
     }
-    await setUserSetting('startDate', new Date(startDate).toISOString());
+    await setUserSetting('startDate', startDate);
     Alert.alert('Settings Saved', `Your program start date has been updated to ${startDate}.`);
   };
 
@@ -39,7 +40,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>Program Start Date</Text>
           </View>
           <Text style={styles.sectionSubtitle}>
-            Your 1,206-day schedule is automatically calculated from this date.
+            Kept as a record of when your program began. Your next face is decided by what you have completed, not the calendar.
           </Text>
 
           <View style={styles.inputRow}>
