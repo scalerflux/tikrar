@@ -5,7 +5,7 @@ import { Theme } from '../../constants/theme';
 import scheduleData from '../../data/schedule-data.json';
 import { Ionicons } from '@expo/vector-icons';
 import { CalendarHeatMap } from '../../components/schedule/CalendarHeatMap';
-import { getAllCompletedDays, getUserSetting } from '../../database/db';
+import { getAllCompletedDaysWithDates } from '../../database/db';
 import { calculateCurrentDay } from '../../utils/schedule-calculator';
 
 export default function ScheduleScreen() {
@@ -18,11 +18,10 @@ export default function ScheduleScreen() {
   }, []);
 
   const loadData = async () => {
-    const completed = await getAllCompletedDays();
-    setCompletedDays(completed);
-    
-    const startDate = await getUserSetting('startDate', new Date().toISOString());
-    const day = calculateCurrentDay(startDate);
+    const completed = await getAllCompletedDaysWithDates();
+    setCompletedDays(completed.map((c) => c.dayNumber));
+
+    const day = calculateCurrentDay(completed.map((c) => c.dayNumber));
     setCurrentDay(day);
   };
 

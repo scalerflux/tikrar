@@ -126,6 +126,34 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     marginBottom: Theme.spacing.md,
   },
+  progressRingContainer: {
+    alignItems: 'center',
+    marginVertical: Theme.spacing.lg,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: Theme.spacing.md,
+  },
+  statBox: {
+    backgroundColor: Theme.colors.bgCard,
+    borderRadius: Theme.borderRadius.lg,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    alignItems: 'center',
+    paddingVertical: Theme.spacing.md,
+    width: '45%',
+  },
+  statNumber: {
+    color: Theme.colors.textPrimary,
+    fontSize: 24,
+    fontWeight: '800',
+  },
+  statLabel: {
+    color: Theme.colors.textSecondary,
+    fontSize: 11,
+    marginTop: 2,
+  },
   mainProgressCard: {
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.lg,
