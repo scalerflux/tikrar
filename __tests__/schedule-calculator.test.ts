@@ -1,4 +1,4 @@
-import { calculateCurrentDay, calculateStreak, localDateString, parseLocalDateString, daysBetweenDates } from '../utils/schedule-calculator';
+import { calculateCurrentDay, calculateStreak, localDateString, parseLocalDateString, daysBetweenDates, datesBetweenExclusive, isValidLocalDateString, getScheduleItem, getUstadRecitationItem } from '../utils/schedule-calculator';
 
 function dateOffset(days: number): string {
   const d = new Date();
@@ -18,7 +18,7 @@ describe('calculateCurrentDay', () => {
 
   it('is completion-driven: a missed week does not advance the day', () => {
     expect(calculateCurrentDay([1, 2, 3])).toBe(4);
-    expect(calculateCurrentDay([1, 2, 3, 11, 12, 13])).toBe(7);
+    expect(calculateCurrentDay([1, 2, 3, 11, 12, 13])).toBe(4);
   });
 
   it('clamps to the last day of the program', () => {
@@ -30,10 +30,26 @@ describe('calculateCurrentDay', () => {
     expect(calculateCurrentDay([3, 1, 1, 2])).toBe(4);
   });
 
-  it('handles sparse completions (out-of-order completion is possible)', () => {
-    expect(calculateCurrentDay([1, 3])).toBe(3);
+  it('returns the first missing day when completion data is sparse', () => {
+    expect(calculateCurrentDay([1, 3])).toBe(2);
+  });
+
+  it('ignores invalid completion rows', () => {
+    expect(calculateCurrentDay([0, -1, 2, 9999, 1, 1])).toBe(3);
   });
 });
+
+describe('getUstadRecitationItem', () => {
+  it('returns the previous day face for Ustad recitation', () => {
+    expect(getUstadRecitationItem(5)).toEqual(getScheduleItem(4));
+    expect(getUstadRecitationItem(5)?.faceNumber).toBe('3 h2');
+  });
+
+  it('has no prior face on day 1', () => {
+    expect(getUstadRecitationItem(1)).toBeNull();
+  });
+});
+
 
 describe('localDateString / parseLocalDateString', () => {
   it('round-trips a date through local timezone', () => {
@@ -69,6 +85,23 @@ describe('daysBetweenDates', () => {
 
   it('is negative when end precedes start', () => {
     expect(daysBetweenDates('2024-08-01', '2024-07-31')).toBe(-1);
+  });
+});
+
+describe('datesBetweenExclusive', () => {
+  it('returns each missed calendar date without the endpoints', () => {
+    expect(datesBetweenExclusive('2024-07-31', '2024-08-03')).toEqual(['2024-08-01', '2024-08-02']);
+  });
+});
+
+describe('isValidLocalDateString', () => {
+  it('accepts real calendar dates', () => {
+    expect(isValidLocalDateString('2024-02-29')).toBe(true);
+  });
+
+  it('rejects impossible dates', () => {
+    expect(isValidLocalDateString('2023-02-29')).toBe(false);
+    expect(isValidLocalDateString('2024-13-01')).toBe(false);
   });
 });
 

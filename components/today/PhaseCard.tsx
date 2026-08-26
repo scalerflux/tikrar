@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { Theme } from '../../constants/theme';
 
 interface PhaseCardProps {
@@ -33,7 +34,16 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
       >
         <TouchableOpacity
           style={[styles.checkbox, isCompleted && styles.checkboxCompleted]}
-          onPress={onToggleComplete}
+          onPress={async () => {
+            try {
+              if (!isCompleted) {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              } else {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              }
+            } catch {}
+            onToggleComplete();
+          }}
         >
           {isCompleted && (
             <Ionicons name="checkmark" size={16} color={Theme.colors.bgDark} />

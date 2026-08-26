@@ -21,6 +21,10 @@ export function getScheduleItem(dayNumber: number): ScheduleItem | null {
   return item ? (item as ScheduleItem) : null;
 }
 
+export function getUstadRecitationItem(dayNumber: number): ScheduleItem | null {
+  return dayNumber > 1 ? getScheduleItem(dayNumber - 1) : null;
+}
+
 /**
  * Local calendar date ("YYYY-MM-DD") of the given Date, computed in the
  * device timezone. Never derived from UTC components, so it cannot drift
@@ -49,6 +53,18 @@ export function daysBetweenDates(a: string, b: string): number {
   return Math.round(diff / (1000 * 60 * 60 * 24));
 }
 
+export function datesBetweenExclusive(start: string, end: string): string[] {
+  const result: string[] = [];
+  const cursor = parseLocalDateString(start);
+  const endDate = parseLocalDateString(end);
+  cursor.setDate(cursor.getDate() + 1);
+  while (cursor < endDate) {
+    result.push(localDateString(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return result;
+}
+
 /**
  * The program day currently due. COMPLETION-DRIVEN: the next day is the
  * first day not yet completed, regardless of how much calendar time has
@@ -58,8 +74,24 @@ export function daysBetweenDates(a: string, b: string): number {
  * which face is due.
  */
 export function calculateCurrentDay(completedDays: number[]): number {
-  const unique = new Set(Array.isArray(completedDays) ? completedDays : []);
-  return Math.max(1, Math.min(TOTAL_PROGRAM_DAYS, unique.size + 1));
+  const completed = new Set(
+    (Array.isArray(completedDays) ? completedDays : []).filter(
+      (day): day is number => Number.isInteger(day) && day >= 1 && day <= TOTAL_PROGRAM_DAYS
+    )
+  );
+
+  for (let day = 1; day <= TOTAL_PROGRAM_DAYS; day++) {
+    if (!completed.has(day)) return day;
+  }
+
+  return TOTAL_PROGRAM_DAYS;
+}
+
+export function isValidLocalDateString(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split('-').map(Number);
+  const parsed = new Date(year, month - 1, day);
+  return parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day;
 }
 
 export interface StreakInfo {
@@ -141,37 +173,41 @@ function enumeratePageAyahs(info: PageAyahInfo): { surah: number; ayah: number }
   return result;
 }
 
-export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
-  if (!faceNumber) return null;
+export function getAyahListForFace(faceNumber: string): { surah: number; ayah: number; page: number }[] {
+  if (!faceNumber) return [];
   const match = faceNumber.trim().match(/^(\d+)\s*(h1|h2)?$/i);
-  if (!match) return null;
+  if (!match) return [];
   const page = parseInt(match[1], 10);
   const half = match[2] ? (match[2].toLowerCase() as 'h1' | 'h2') : null;
   const info = (pageAyahMap as Record<string, PageAyahInfo>)[String(page)];
-  if (!info) return null;
+  if (!info) return [];
 
-  const ayahs = enumeratePageAyahs(info);
-  if (ayahs.length === 0) return null;
+  const ayahs = enumeratePageAyahs(info).map(a => ({ ...a, page }));
+  if (ayahs.length === 0) return [];
 
-  if (!half) {
-    return {
-      page,
-      half: null,
-      surahNumber: ayahs[0].surah,
-      startAyah: ayahs[0].ayah,
-      endAyah: ayahs[ayahs.length - 1].ayah,
-      totalAyahs: ayahs.length,
-    };
+  if (!half || ayahs.length === 1) {
+    return ayahs;
   }
 
   const mid = Math.ceil(ayahs.length / 2);
   const selected = half === 'h1' ? ayahs.slice(0, mid) : ayahs.slice(mid);
+  return selected.length > 0 ? selected : ayahs;
+}
+
+export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
+  const list = getAyahListForFace(faceNumber);
+  if (list.length === 0) return null;
+
+  const match = faceNumber.trim().match(/^(\d+)\s*(h1|h2)?$/i);
+  const page = match ? parseInt(match[1], 10) : list[0].page;
+  const half = match && match[2] ? (match[2].toLowerCase() as 'h1' | 'h2') : null;
+
   return {
     page,
     half,
-    surahNumber: selected[0].surah,
-    startAyah: selected[0].ayah,
-    endAyah: selected[selected.length - 1].ayah,
-    totalAyahs: selected.length,
+    surahNumber: list[0].surah,
+    startAyah: list[0].ayah,
+    endAyah: list[list.length - 1].ayah,
+    totalAyahs: list.length,
   };
 }

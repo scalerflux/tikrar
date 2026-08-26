@@ -1,0 +1,64 @@
+name: Android APK Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v (for example, 1.0.1)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build and publish APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Expo and EAS
+        uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+          packager: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build APK with EAS
+        run: eas build --platform android --profile production-apk --non-interactive --wait --json > eas-build.json
+
+      - name: Download APK
+        id: apk
+        shell: bash
+        run: |
+          apk_url="$(node -e 'const fs=require("fs"); const payload=JSON.parse(fs.readFileSync("eas-build.json","utf8")); const build=Array.isArray(payload) ? payload[0] : payload; const url=build?.artifacts?.buildUrl; if (!url) { console.error(JSON.stringify(build, null, 2)); process.exit(1); } process.stdout.write(url);')"
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then
+            version="$(node -p 'require("./app.json").expo.version')-build.${GITHUB_RUN_NUMBER}"
+          fi
+          tag="v${version}"
+          file="Tikrar-${version}.apk"
+          curl --fail --location --retry 3 "$apk_url" --output "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.apk.outputs.tag }}" "${{ steps.apk.outputs.file }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Tikrar ${{ steps.apk.outputs.tag }}" \
+            --generate-notes

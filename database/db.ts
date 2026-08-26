@@ -35,55 +35,47 @@ export async function getDb(): Promise<SQLite.SQLiteDatabase | null> {
     return dbInstance;
   } catch (error) {
     console.warn('SQLite init failed, falling back to AsyncStorage:', error);
+    dbInstance = null;
     useAsyncStorageFallback = true;
     return null;
   }
 }
 
 async function initDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
-  try {
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS user_settings (
-        key TEXT PRIMARY KEY,
-        value TEXT NOT NULL
-      );
+  await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS user_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL
+    );
 
-      CREATE TABLE IF NOT EXISTS daily_progress (
-        dayNumber INTEGER PRIMARY KEY,
-        phaseYesterday INTEGER DEFAULT 0,
-        phaseListening INTEGER DEFAULT 0,
-        phaseTafseer INTEGER DEFAULT 0,
-        phaseRecording INTEGER DEFAULT 0,
-        phaseConnection INTEGER DEFAULT 0,
-        phaseRevision INTEGER DEFAULT 0,
-        isComplete INTEGER DEFAULT 0,
-        completedDate TEXT,
-        updatedAt TEXT NOT NULL
-      );
-    `);
-    await migrateDatabase(db);
-  } catch (e) {
-    console.warn('Init database error:', e);
-  }
+    CREATE TABLE IF NOT EXISTS daily_progress (
+      dayNumber INTEGER PRIMARY KEY,
+      phaseYesterday INTEGER DEFAULT 0,
+      phaseListening INTEGER DEFAULT 0,
+      phaseTafseer INTEGER DEFAULT 0,
+      phaseRecording INTEGER DEFAULT 0,
+      phaseConnection INTEGER DEFAULT 0,
+      phaseRevision INTEGER DEFAULT 0,
+      isComplete INTEGER DEFAULT 0,
+      completedDate TEXT,
+      updatedAt TEXT NOT NULL
+    );
+  `);
+  await migrateDatabase(db);
 }
 
 async function migrateDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
-  try {
-    const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
-    const version = versionRow?.user_version ?? 0;
-    if (version >= SCHEMA_VERSION) return;
+  const versionRow = await db.getFirstAsync<{ user_version: number }>('PRAGMA user_version');
+  const version = versionRow?.user_version ?? 0;
+  if (version >= SCHEMA_VERSION) return;
 
-    // v0 -> v1: add completedDate to daily_progress (existing installs).
-    const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(daily_progress)');
-    const hasCompletedDate = columns.some((c) => c.name === 'completedDate');
-    if (!hasCompletedDate) {
-      await db.execAsync('ALTER TABLE daily_progress ADD COLUMN completedDate TEXT');
-    }
-
-    await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
-  } catch (e) {
-    console.warn('Migrate database error:', e);
+  const columns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(daily_progress)');
+  const hasCompletedDate = columns.some((c) => c.name === 'completedDate');
+  if (!hasCompletedDate) {
+    await db.execAsync('ALTER TABLE daily_progress ADD COLUMN completedDate TEXT');
   }
+
+  await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
 }
 
 export async function getUserSetting(key: string, defaultValue: string = ''): Promise<string> {
@@ -91,11 +83,12 @@ export async function getUserSetting(key: string, defaultValue: string = ''): Pr
   if (db) {
     try {
       const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM user_settings WHERE key = ?', [key]);
-      return row ? row.value : defaultValue;
+      if (row) return row.value;
+      useAsyncStorageFallback = true;
     } catch (e) {
       console.warn('getUserSetting sqlite error:', e);
+      useAsyncStorageFallback = true;
     }
-    return defaultValue;
   }
 
   // Fallback to AsyncStorage (only in fallback mode)
@@ -118,6 +111,7 @@ export async function setUserSetting(key: string, value: string): Promise<void> 
       return;
     } catch (e) {
       console.warn('setUserSetting sqlite error:', e);
+      useAsyncStorageFallback = true;
     }
   }
 
@@ -149,10 +143,11 @@ export async function getDailyProgress(dayNumber: number): Promise<DailyProgress
     try {
       const row = await db.getFirstAsync<DailyProgressRow>('SELECT * FROM daily_progress WHERE dayNumber = ?', [dayNumber]);
       if (row) return row;
+      useAsyncStorageFallback = true;
     } catch (e) {
       console.warn('getDailyProgress sqlite error:', e);
+      useAsyncStorageFallback = true;
     }
-    return defaultRow;
   }
 
   // Fallback to AsyncStorage (only in fallback mode)
@@ -176,7 +171,7 @@ export async function saveDailyProgress(progress: Partial<DailyProgressRow> & { 
   const isComplete = progress.isComplete !== undefined ? progress.isComplete : existing.isComplete;
   const completedDate =
     isComplete === 1 && existing.isComplete !== 1
-      ? localDateString()
+      ? progress.completedDate ?? localDateString()
       : progress.completedDate !== undefined
         ? progress.completedDate
         : existing.completedDate;
@@ -211,6 +206,7 @@ export async function saveDailyProgress(progress: Partial<DailyProgressRow> & { 
       return updated;
     } catch (e) {
       console.warn('saveDailyProgress sqlite error:', e);
+      useAsyncStorageFallback = true;
     }
   }
 
@@ -238,11 +234,14 @@ export async function getAllCompletedDaysWithDates(): Promise<CompletedDay[]> {
       const rows = await db.getAllAsync<{ dayNumber: number; completedDate: string | null }>(
         'SELECT dayNumber, completedDate FROM daily_progress WHERE isComplete = 1'
       );
-      return rows.map((r) => ({ dayNumber: r.dayNumber, completedDate: r.completedDate ?? '' }));
+      if (rows.length > 0) {
+        return rows.map((r) => ({ dayNumber: r.dayNumber, completedDate: r.completedDate ?? '' }));
+      }
+      useAsyncStorageFallback = true;
     } catch (e) {
       console.warn('getAllCompletedDays sqlite error:', e);
+      useAsyncStorageFallback = true;
     }
-    return [];
   }
 
   if (useAsyncStorageFallback) {

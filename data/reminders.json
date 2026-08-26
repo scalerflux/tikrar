@@ -1,0 +1,1485 @@
+{
+  "poolSize": 211,
+  "totalProgramDays": 1206,
+  "translationNote": "English translations adapted from the printed editions cited in each source; Quran verses follow Hilali-Khan/Saheeh International wording as quoted in the source books.",
+  "sourceNote": "Source field is the reference as printed in the source book (e.g., Sahih al-Bukhari 5027, Hilyat al-Awliya 7/278, or Quran surah:ayah). Bracketed book-only refs show the book title; author names were added for Your Relationship with the Quran by Musaid al-Tayyar and The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim.",
+  "reminders": [
+    {
+      "category": "Verse",
+      "text": "\"Praise be to Allah, who revealed to His Slave the Book, and placed therein no crookedness.\"",
+      "source": "Al-Kahf 18:1-2",
+      "attribution": null,
+      "id": 1
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The best of you is he who learns the Quran and teaches it.\"",
+      "source": "Sahih al-Bukhari (5027)",
+      "attribution": "The Prophet ﷺ",
+      "id": 2
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Masud said, \"Whoever wishes to know whether he loves Allah, let him present himself to the Quran. If he loves the Quran, then he loves Allah, for the Quran is none other than the Speech of Allah.\"",
+      "source": null,
+      "attribution": "Abdullah ibn Masud",
+      "id": 3
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan al-Basri said, \"Whoever wishes to know who he is, let him present himself to the Quran.\"",
+      "source": null,
+      "attribution": "Al-Hasan al-Basri",
+      "id": 4
+    },
+    {
+      "category": "Tip",
+      "text": "The foundation of memorization is repetition. The more you repeat, the stronger your memorization becomes.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 5
+    },
+    {
+      "category": "Verse",
+      "text": "\"Those who recite the Book of Allah, establish the Prayer and spend from what We have granted them, secretly and openly, hope for a trade that will never fail.\"",
+      "source": "Fatir 35:29-30",
+      "attribution": null,
+      "id": 6
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Does not one of you go out in the morning to the masjid and learn or recite two verses from the Book of Allah, the Mighty and Majestic? That is better for him than two she-camels, and three verses are better than three, and four than four, and so on in their numbers.\"",
+      "source": "Sahih Muslim (803)",
+      "attribution": "The Prophet ﷺ",
+      "id": 7
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Masud said, \"It befits the reciter of the Quran to be known by his nights when the people sleep, by his crying when the people laugh, by his caution when the people mix the lawful and unlawful, by his humility when the people are proud, by his grief when the people rejoice, and by his silence when the people chatter.\"",
+      "source": null,
+      "attribution": "Abdullah ibn Masud",
+      "id": 8
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan al-Basri said, \"May Allah have mercy on a slave who presents himself and his deeds to the Book of Allah. If they conform to it he praises Allah and asks for more, and if they oppose it he rebukes himself and returns quickly.\"",
+      "source": null,
+      "attribution": "Al-Hasan al-Basri",
+      "id": 9
+    },
+    {
+      "category": "Tip",
+      "text": "Review always outweighs new lessons. If time is short, give precedence to revising what you know over memorizing something new.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 10
+    },
+    {
+      "category": "Verse",
+      "text": "\"Truly, this Quran guides to that which is most upright, and gives glad tidings to the Believers who work righteous deeds that theirs will be a great reward.\"",
+      "source": "Al-Isra 17:9",
+      "attribution": null,
+      "id": 11
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"There is no envy except in two cases: a person whom Allah has given the Quran and he recites it throughout the night and throughout the day, and a person whom Allah has given wealth and he spends it throughout the night and throughout the day.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 12
+    },
+    {
+      "category": "Companion",
+      "text": "Abu Musa al-Ashari gathered nearly three hundred memorizers of the Quran in Basra and said, \"Truly this Quran can be an asset for you or a burden upon you. Follow the Quran and let it not follow you. Whoever follows it, it lands him in the Gardens of Paradise, and whoever is followed by it, it smites the back of his head and hurls him into the Fire.\"",
+      "source": null,
+      "attribution": "Abu Musa al-Ashari gathered nearly three hundred memorizers of the Quran in Basra and",
+      "id": 13
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan al-Basri said, \"Pondering the signs of the Quran is none other than following it. By Allah, it is not preserving its letters while wasting its limits. One of them says, I recited the whole Quran without missing a single letter, yet by Allah he has missed it all, for the Quran is seen in neither his character nor his deeds.\"",
+      "source": null,
+      "attribution": "Al-Hasan al-Basri",
+      "id": 14
+    },
+    {
+      "category": "Tip",
+      "text": "Memorize from a single copy of the Quran so the position of verses on the page becomes part of your memory.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 15
+    },
+    {
+      "category": "Verse",
+      "text": "\"We reveal from the Quran that which is a Cure and Mercy for the Believers.\"",
+      "source": "Al-Isra 17:82",
+      "attribution": null,
+      "id": 16
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever recites a letter from the Book of Allah receives a good deed, and the good deed is multiplied by ten. I do not say that Alif Lam Mim is one letter; rather Alif is a letter, Lam is a letter, and Mim is a letter.\"",
+      "source": "Jami at-Tirmidhi (2910), hasan sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 17
+    },
+    {
+      "category": "Companion",
+      "text": "Umm al-Darda asked Aishah about the rank of the one who enters Paradise from among those who recited the Quran. She replied, \"The number of the grades of Paradise is as the number of the verses of the Quran, so none who entered it from among the reciters of the Quran will have anyone above him.\"",
+      "source": null,
+      "attribution": null,
+      "id": 18
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan al-Basri said, \"One man recites the Quran and treats it as a commodity. Another recites it spending his night awake and his day thirsty. Because of such people Allah turns away the enemy from us and waters us with rain. This class of the people of the Quran is rarer than red sulphur.\"",
+      "source": null,
+      "attribution": "Al-Hasan al-Basri",
+      "id": 19
+    },
+    {
+      "category": "Tip",
+      "text": "Take a qualified teacher and recite each new page to him completely before committing it to memory, for correction protects what you store.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 20
+    },
+    {
+      "category": "Verse",
+      "text": "\"O mankind! There has come to you an Admonition from your Lord, a Cure for that which is in the chests, a Guidance and Mercy for the Believers.\"",
+      "source": "Yunus 10:57",
+      "attribution": null,
+      "id": 21
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The one who is skilled in reciting the Quran is with the noble, obedient, recording angels, and the one who recites it with difficulty, stumbling over it, will receive two rewards.\"",
+      "source": "Sahih al-Bukhari (4937)",
+      "attribution": "The Prophet ﷺ",
+      "id": 22
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Amr ibn al-As said, \"He who collects the Quran has carried a great matter. Prophethood has been placed between his shoulders, except that he receives no revelation. It does not befit the bearer of the Quran to show harshness with the harsh or ignorance with the ignorant, for truly the Quran is within him.\"",
+      "source": null,
+      "attribution": "Abdullah ibn Amr ibn al-As",
+      "id": 23
+    },
+    {
+      "category": "Salaf",
+      "text": "Mujahid said about \"They recite it as it should be recited\" [al-Baqarah 2:121], \"They practice it as it should be practiced.\"",
+      "source": null,
+      "attribution": "Mujahid",
+      "id": 24
+    },
+    {
+      "category": "Tip",
+      "text": "Memorize every single day, for missed days weaken ambition and weaken memorization.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 25
+    },
+    {
+      "category": "Verse",
+      "text": "\"Hold fast to the Rope of Allah, all together, and do not be divided.\"",
+      "source": "Aal Imran 3:103",
+      "attribution": null,
+      "id": 26
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Verily he who has nothing of the Quran in his heart is like a destroyed house.\"",
+      "source": "Sunan at-Tirmidhi (2913)",
+      "attribution": "The Prophet ﷺ",
+      "id": 27
+    },
+    {
+      "category": "Companion",
+      "text": "Anas said, \"If a man read Surah al-Baqarah and Surah Aal Imran, we would consider him great.\"",
+      "source": "Musnad Ahmad (12216)",
+      "attribution": "Anas",
+      "id": 28
+    },
+    {
+      "category": "Salaf",
+      "text": "Ata said, \"The Quran consists only of admonitions.\"",
+      "source": null,
+      "attribution": "Ata",
+      "id": 29
+    },
+    {
+      "category": "Tip",
+      "text": "Begin from Surah an-Nas working toward al-Baqarah since the short surahs are easier, then after completing the whole Quran review from al-Baqarah back down.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 30
+    },
+    {
+      "category": "Verse",
+      "text": "\"Allah has sent down the Best of Speech, a Book Self-Consistent, Oft-Repeated. Trembling do the skins of those who fear their Lord grasp at it: then do their skins and their hearts soften towards the Remembrance of Allah.\"",
+      "source": "Az-Zumar 39:23",
+      "attribution": null,
+      "id": 31
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Read the Quran, for verily it will come on the Day of Resurrection as an intercessor for its companions.\"",
+      "source": "Sahih Muslim (804)",
+      "attribution": "The Prophet ﷺ",
+      "id": 32
+    },
+    {
+      "category": "Companion",
+      "text": "Ibn Abbas said, \"No people sit in one of the houses of Allah studying the Book of Allah together except that the angels shade them with their wings, and they remain the guests of Allah as long as they continue.\"",
+      "source": null,
+      "attribution": "Ibn Abbas",
+      "id": 33
+    },
+    {
+      "category": "Salaf",
+      "text": "Fudayl ibn Iyad said, \"The Quran was only revealed to be acted upon, but the people took its recitation itself as the deed.\"",
+      "source": null,
+      "attribution": "Fudayl ibn Iyad",
+      "id": 34
+    },
+    {
+      "category": "Tip",
+      "text": "Do not begin a new page until you have perfected the previous one without error or hesitation.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 35
+    },
+    {
+      "category": "Verse",
+      "text": "\"A Blessed Book We have sent down to you, that they may ponder its Signs deeply, and that People of Understanding may reflect.\"",
+      "source": "Sad 38:29",
+      "attribution": null,
+      "id": 36
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The Quran and its people, those who acted upon it, will be brought forth on the Day of Resurrection, led by Surah al-Baqarah and Aal Imran, arguing on behalf of their companion.\"",
+      "source": "Sahih Muslim (805)",
+      "attribution": "The Prophet ﷺ",
+      "id": 37
+    },
+    {
+      "category": "Companion",
+      "text": "Ibn Abbas was told, \"I recite the entire Quran in three days.\" He replied, \"Were I to recite al-Baqarah in one night, pondering it deeply and reciting it rhythmically, that would be dearer to me.\"",
+      "source": null,
+      "attribution": null,
+      "id": 38
+    },
+    {
+      "category": "Salaf",
+      "text": "Fudayl ibn Iyad said, \"It befits the bearer of the Quran to be in need of none of creation, not the Caliph nor anyone beneath him. Rather it is fitting that creation be in need of him.\"",
+      "source": null,
+      "attribution": "Fudayl ibn Iyad",
+      "id": 39
+    },
+    {
+      "category": "Tip",
+      "text": "Read each verse twenty times from the mushaf, then join it to the next verse reciting both together ten times, then recite the completed page ten times to seal it.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 40
+    },
+    {
+      "category": "Verse",
+      "text": "\"So give glad tidings to My slaves! Those who listen to the Word and follow its best meaning, it is they whom Allah has guided, and it is they who are People of Understanding.\"",
+      "source": "Az-Zumar 39:17-18",
+      "attribution": null,
+      "id": 41
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The Quran is an intercessor whose intercession is accepted, and a truthful witness. Whoever takes it as a leader, it leads him to Paradise, and whoever puts it behind his back, it drives him into the Fire.\"",
+      "source": "Sahih; Ibn Hibban, al-Bayhaqi in Shuab al-Iman, at-Tabarani",
+      "attribution": "The Prophet ﷺ",
+      "id": 42
+    },
+    {
+      "category": "Companion",
+      "text": "Umar ibn al-Khattab said, \"There passed a time when we did not think that anyone learnt the Quran except intending Allah thereby. Now I fear men learn it for the sake of people and what they possess. Therefore intend Allah with your recitation and your deeds.\"",
+      "source": null,
+      "attribution": "Umar ibn al-Khattab",
+      "id": 43
+    },
+    {
+      "category": "Salaf",
+      "text": "Hudhayfah al-Marashi wrote to Yusuf ibn Asbat, \"Know that whoever recites the Quran and then gives preference to the world is not safe from being among those who mock the Signs of Allah.\"",
+      "source": null,
+      "attribution": null,
+      "id": 44
+    },
+    {
+      "category": "Tip",
+      "text": "Never exceed roughly one page a day unless your memorization is strong, for quantity without perfection produces weakness, and whoever memorizes quickly forgets quickly.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 45
+    },
+    {
+      "category": "Verse",
+      "text": "\"Truly, in that is a Reminder for whoever has a heart, or lends the ear whilst witnessing.\"",
+      "source": "Qaf 50:37",
+      "attribution": null,
+      "id": 46
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Maintain the Quran, for by Him in Whose Hand is Muhammad's soul, it escapes from memory more intensely than a camel from its rein.\"",
+      "source": "Agreed upon; al-Bukhari (5032), Muslim (790)",
+      "attribution": "The Prophet ﷺ",
+      "id": 47
+    },
+    {
+      "category": "Companion",
+      "text": "Umar said of the reciters of his time, \"They were the people of Umar's gatherings and his advisors, whether old or young.\"",
+      "source": "Sahih al-Bukhari (4642)",
+      "attribution": "Umar",
+      "id": 48
+    },
+    {
+      "category": "Salaf",
+      "text": "Maymun ibn Mihran used to say, \"Were the people of the Quran righteous, all people would be righteous.\"",
+      "source": null,
+      "attribution": "Maymun ibn Mihran",
+      "id": 49
+    },
+    {
+      "category": "Tip",
+      "text": "Before starting a new lesson, review from memory everything you memorized over the previous five days.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 50
+    },
+    {
+      "category": "Verse",
+      "text": "\"Do they not then ponder the Quran deeply?\"",
+      "source": "Muhammad 47:24",
+      "attribution": null,
+      "id": 51
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The example of the hafiz of the Quran is like the owner of tied camels. If he keeps them tied he holds onto them, and if he lets them loose they run away.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 52
+    },
+    {
+      "category": "Companion",
+      "text": "Ibn Umar said, \"We were the beginning of this nation. Among the best companions of the Messenger of Allah ﷺ were men who had only a single surah or so, yet the Quran was weighty upon them and they were given the sustenance of acting upon it. The end of this nation will carry the Quran lightly, even the child and the non-Arab reciting it, yet they will not act upon it.\"",
+      "source": null,
+      "attribution": "Ibn Umar",
+      "id": 53
+    },
+    {
+      "category": "Salaf",
+      "text": "Zadhan said, \"Whoever recites the Quran asking sustenance from the people will come on the Day of Resurrection with his face bare bone, no flesh upon it.\"",
+      "source": null,
+      "attribution": "Zadhan",
+      "id": 54
+    },
+    {
+      "category": "Tip",
+      "text": "For look-alike verses, open the mushaf, compare their differences, set yourself a rule to tell them apart, and concentrate on those differences in revision.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 55
+    },
+    {
+      "category": "Verse",
+      "text": "\"Were it from other than Allah, they would surely have found in it much contradiction.\"",
+      "source": "An-Nisa 4:82",
+      "attribution": null,
+      "id": 56
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Verily Allah elevates nations by this Book and lowers others by it.\"",
+      "source": "Sahih Muslim (817)",
+      "attribution": "The Prophet ﷺ",
+      "id": 57
+    },
+    {
+      "category": "Companion",
+      "text": "Ali ibn Abi Talib said, \"If you remain, the Quran will be recited by three groups: one group for Allah, one group for the world, and one group for argumentation. Whoever seeks by it shall attain.\"",
+      "source": null,
+      "attribution": "Ali ibn Abi Talib",
+      "id": 58
+    },
+    {
+      "category": "Salaf",
+      "text": "Ayyub al-Sakhtiyani said, \"It befits the person of knowledge to place ashes upon his head, humbling himself before Allah.\"",
+      "source": null,
+      "attribution": "Ayyub al-Sakhtiyani",
+      "id": 59
+    },
+    {
+      "category": "Tip",
+      "text": "To perfect your memorization, review five juz a day so you complete the whole Quran every six days, and hold this pace for a full year.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 60
+    },
+    {
+      "category": "Verse",
+      "text": "\"When the Quran is recited, listen to it and observe silence, that you may be shown mercy.\"",
+      "source": "Al-Araf 7:204",
+      "attribution": null,
+      "id": 61
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The example of the believer who recites the Quran is like a citron: its taste is delicious and its scent is pleasant. And the believer who does not recite the Quran is like a date: delicious in taste but without scent.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 62
+    },
+    {
+      "category": "Companion",
+      "text": "Uthman ibn Affan said, \"If our hearts were truly pure, we would never have enough of the Speech of our Lord. Indeed, I hate that a day passes me and I do not look into the Mushaf.\"",
+      "source": null,
+      "attribution": "Uthman ibn Affan",
+      "id": 63
+    },
+    {
+      "category": "Salaf",
+      "text": "Qatadah said, \"No one sits with this Quran except that he rises from it with either gain or loss.\"",
+      "source": null,
+      "attribution": "Qatadah",
+      "id": 64
+    },
+    {
+      "category": "Tip",
+      "text": "Everyone loses some memorization in the first two years. Do not grieve. It is a trial meant to stop you, so push past it, for this is a treasure not given to just anyone.",
+      "source": "The Easiest Way to Memorize the Noble Quran by Abdul Muhsin al-Qasim",
+      "attribution": null,
+      "id": 65
+    },
+    {
+      "category": "Verse",
+      "text": "\"And recite the Quran with measured rhythmic recitation.\"",
+      "source": "Al-Muzzammil 73:4",
+      "attribution": null,
+      "id": 66
+    },
+    {
+      "category": "Hadith",
+      "text": "It will be said to the companion of the Quran: \"Recite and ascend, and recite melodiously as you used to recite in the worldly life, for indeed your abode will be at the last verse you recite.\"",
+      "source": "Sunan Abi Dawud (1464), at-Tirmidhi (2914); sahih",
+      "attribution": "It will be",
+      "id": 67
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Masud said, \"Indeed these hearts are vessels, so busy them with the Quran and do not busy them with anything besides it.\"",
+      "source": "al-Musannaf (7/106)",
+      "attribution": "Abdullah ibn Masud",
+      "id": 68
+    },
+    {
+      "category": "Salaf",
+      "text": "Qatadah said about the pure land whose vegetation grows by its Lord's permission, \"The pure land is the believer: he hears the Book of Allah, preserves it, holds to it and benefits from it, like land watered by rain that produces herbage.\"",
+      "source": null,
+      "attribution": "Qatadah",
+      "id": 69
+    },
+    {
+      "category": "Tip",
+      "text": "Keep a small daily portion of Quran as your unbreakable base. Exceed it in days of energy and return to it in days of tiredness.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 70
+    },
+    {
+      "category": "Verse",
+      "text": "\"A Recitation which We have divided, that you may recite it to the people gradually, at intervals.\"",
+      "source": "Al-Isra 17:106",
+      "attribution": null,
+      "id": 71
+    },
+    {
+      "category": "Hadith",
+      "text": "\"He will recite and ascend a rank with every verse he reads until he finishes the last portion that is with him.\"",
+      "source": "Musnad Ahmad (3/40), Sunan Ibn Majah (3779); sahih",
+      "attribution": null,
+      "id": 72
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Masud said, \"Study the Quran perpetually.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (2028)",
+      "attribution": "Abdullah ibn Masud",
+      "id": 73
+    },
+    {
+      "category": "Salaf",
+      "text": "Abu Abd ar-Rahman as-Sulami said, \"That is what made me sit in this seat of mine,\" after hearing the hadith, the best of you is he who learns the Quran and teaches it, and he continued teaching from the caliphate of Uthman until the governorship of al-Hajjaj.",
+      "source": null,
+      "attribution": "Abu Abd ar-Rahman as-Sulami",
+      "id": 74
+    },
+    {
+      "category": "Tip",
+      "text": "Set a schedule you can sustain, for consistency completes what bursts of enthusiasm never do.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 75
+    },
+    {
+      "category": "Verse",
+      "text": "\"Nay, but the clear Ayat are preserved in the breasts of those who have been given knowledge.\"",
+      "source": "Al-Ankabut 29:49",
+      "attribution": null,
+      "id": 76
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The Quran will meet its companion on the Day of Standing when his grave splits open, like a pale man, saying to him: Do you recognize me? I am the one who made you thirsty during the day and kept you awake at night. Every merchant gets the reward of his work, and today you will receive the reward of your work. Then he will be given dominion in his right hand and eternity in his left, and a crown of dignity will be placed upon his head, and his parents will be clothed with garments finer than anything in this world. They will say: O Lord, how did we earn this? It will be said: Because your child learnt the Quran.\"",
+      "source": "Musnad Ahmad (5/348), Ibn Majah (3781); sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 77
+    },
+    {
+      "category": "Companion",
+      "text": "Abdullah ibn Masud said, \"Read the Quran in seven days and do not read it in less than three days, and let a man maintain his portion of recitation every day and night.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (2173)",
+      "attribution": "Abdullah ibn Masud",
+      "id": 78
+    },
+    {
+      "category": "Salaf",
+      "text": "Isa ibn Maryam was met by a woman who said, \"Blessed is the womb that bore you and the breast that suckled you.\" He replied, \"And blessed is the one who recites the Quran and then acts upon it.\"",
+      "source": null,
+      "attribution": "Isa ibn Maryam was met by a woman who",
+      "id": 79
+    },
+    {
+      "category": "Tip",
+      "text": "Keep a short tafsir beside you while reciting, for knowing the meanings doubles the sweetness.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 80
+    },
+    {
+      "category": "Verse",
+      "text": "\"The Most Beneficent! He has taught the Quran.\"",
+      "source": "Ar-Rahman 55:1-2",
+      "attribution": null,
+      "id": 81
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The people of the Quran are the people of Allah and His chosen ones.\"",
+      "source": "Musnad Ahmad (5/127), Sunan Ibn Majah (215); sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 82
+    },
+    {
+      "category": "Companion",
+      "text": "Ibn Abbas said, \"Allah has guaranteed the one who follows the Quran that he will not become misguided in this world nor suffer in the next life,\" then he recited, \"So whoever follows My guidance will neither go astray nor suffer.\"",
+      "source": "al-Musannaf (7/136)",
+      "attribution": "Ibn Abbas",
+      "id": 83
+    },
+    {
+      "category": "Salaf",
+      "text": "One of the Salaf said, \"Increase your recitation of the Quran and do not abandon it, for what you seek will be made easy for you in proportion to how much you recite.\"",
+      "source": null,
+      "attribution": "One of the Salaf",
+      "id": 84
+    },
+    {
+      "category": "Tip",
+      "text": "Note the benefits and questions that occur to you while reading before they slip away. Imagine how much knowledge would exist if every student wrote down what occurred to him while reading.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 85
+    },
+    {
+      "category": "Verse",
+      "text": "\"Thus (it is sent down in parts) that We may strengthen your heart thereby, and We have revealed it to you gradually, in stages.\"",
+      "source": "Al-Furqan 25:32",
+      "attribution": null,
+      "id": 86
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The person best versed in the recitation of Allah's Book should lead the people in prayer.\"",
+      "source": "Sahih Muslim (673)",
+      "attribution": "The Prophet ﷺ",
+      "id": 87
+    },
+    {
+      "category": "Companion",
+      "text": "Ubay ibn Kab said, \"Indeed we used to read the whole Quran in eight nights.\"",
+      "source": "al-Tabaqat (6/60)",
+      "attribution": "Ubay ibn Kab",
+      "id": 88
+    },
+    {
+      "category": "Salaf",
+      "text": "Jundub ibn Abdullah and Abdullah ibn Umar said, \"We learnt faith first, then the Quran, and our faith increased. You learn the Quran first, then faith.\"",
+      "source": null,
+      "attribution": "Jundub ibn Abdullah and Abdullah ibn Umar",
+      "id": 89
+    },
+    {
+      "category": "Tip",
+      "text": "Seek out reciters whose recitation moves your heart, and let their voices pull you back to the Book.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 90
+    },
+    {
+      "category": "Verse",
+      "text": "\"Indeed, there has come to you from Allah a Light and a plain Book. Wherewith Allah guides all those who seek His Good Pleasure to ways of peace, and He brings them out of darkness unto light and guides them to a Straight Path.\"",
+      "source": "Al-Maidah 5:15-16",
+      "attribution": null,
+      "id": 91
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ would arrange two martyrs of Uhud in one grave, then ask, \"Which of them learnt more of the Quran?\" and place the one pointed out first into the grave.",
+      "source": "Sahih al-Bukhari (1343)",
+      "attribution": null,
+      "id": 92
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Kathir wrote, \"Allah sent down the Quran to His slaves and made its memorization and understanding easy for those upon whom He bestows His mercy.\"",
+      "source": "Tafsir Ibn Kathir 7/489",
+      "attribution": null,
+      "id": 93
+    },
+    {
+      "category": "Tip",
+      "text": "Distancing yourself from sins is among the surest ways to taste the sweetness of the Quran, for the purer the heart the deeper the impact of the Words of Allah.",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 94
+    },
+    {
+      "category": "Verse",
+      "text": "\"Allah will raise those of you who believe and those who have been granted knowledge by degrees.\"",
+      "source": "Al-Mujadilah 58:11",
+      "attribution": null,
+      "id": 95
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Indeed, it is from the honoring of Allah to honor the elderly Muslim, and the bearer of the Quran who neither exaggerates regarding it nor neglects it, and to honor the just ruler.\"",
+      "source": "Sunan Abi Dawud (4843); hasan",
+      "attribution": "The Prophet ﷺ",
+      "id": 96
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Jawzi said, \"The best thing a person can busy himself with is the memorization of the Quran.\"",
+      "source": "Sayd al-Khatir",
+      "attribution": "Ibn al-Jawzi",
+      "id": 97
+    },
+    {
+      "category": "Tip",
+      "text": "\"How are people moved by the words of men, yet not moved by the Words of the Lord of men?\"",
+      "source": "Your Relationship with the Quran by Musaid al-Tayyar",
+      "attribution": null,
+      "id": 98
+    },
+    {
+      "category": "Verse",
+      "text": "\"Whoever turns away from My Reminder, verily, for him is a life of hardship, and We shall raise him up blind on the Day of Resurrection.\"",
+      "source": "Ta-Ha 20:124",
+      "attribution": null,
+      "id": 99
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The example of the guidance and knowledge with which Allah has sent me is like abundant rain falling on fertile earth, which brings forth vegetation in abundance. That is the person who comprehends Allah's religion, learning it and teaching others.\"",
+      "source": "Sahih al-Bukhari (79), Sahih Muslim (2282)",
+      "attribution": "The Prophet ﷺ",
+      "id": 100
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Jawzi said, \"Persistence in revision is a great foundation, for how many abandoned revising what they had memorized, then spent a long time trying to retrieve what they had lost.\"",
+      "source": "Sayd al-Khatir",
+      "attribution": "Ibn al-Jawzi",
+      "id": 101
+    },
+    {
+      "category": "Verse",
+      "text": "\"And the Messenger will say: O my Lord! Verily, my people abandoned this Quran.\"",
+      "source": "Al-Furqan 25:30",
+      "attribution": null,
+      "id": 102
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Show mercy and you will be shown mercy. Forgive and Allah will forgive you. Woe to those who hear and do not act.\"",
+      "source": "Musnad Ahmad (2/165); sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 103
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Jawzi said, \"If one of the Salaf was granted a son, he would occupy him with memorizing the Quran and listening to hadith, so that faith would become firm in his heart.\"",
+      "source": "Sayd al-Khatir",
+      "attribution": "Ibn al-Jawzi",
+      "id": 104
+    },
+    {
+      "category": "Verse",
+      "text": "\"We have sent down to you the Book as a clarification of everything, a guidance, a mercy, and glad tidings for those who submit.\"",
+      "source": "An-Nahl 16:89",
+      "attribution": null,
+      "id": 105
+    },
+    {
+      "category": "Hadith",
+      "text": "The believer will be asked in the grave, \"How do you know this?\" and he will reply, \"I read Allah's Book and I believed in what was in it.\"",
+      "source": "Sunan Abi Dawud (4753); sahih",
+      "attribution": null,
+      "id": 106
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Amash said, \"I read the Quran to Yahya ibn Wahhab thirty times.\"",
+      "source": "Al-Mujam al-Awsat",
+      "attribution": "Al-Amash",
+      "id": 107
+    },
+    {
+      "category": "Verse",
+      "text": "\"Has the time not come for the hearts of those who believe to be affected by Allah's Reminder, lest they become like those who received the Scripture before, and a long period passed over them, so their hearts were hardened?\"",
+      "source": "Al-Hadid 57:16",
+      "attribution": null,
+      "id": 108
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said to Ziyad ibn Labid, \"The Tawrah and Injil are with the Jews and Christians, but how does it help them?\"",
+      "source": "Jami at-Tirmidhi (2653); sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 109
+    },
+    {
+      "category": "Salaf",
+      "text": "Abu Bakr Ahmad ash-Shathai said, \"I read the Quran in Baghdad to Abi al-Hasan ibn al-Akhram until Surah at-Tawbah, then traveled with him reading along the way until I completed the Quran to him in Damascus.\"",
+      "source": "Jamalul Qurra wa Kamalul Iqra",
+      "attribution": "Abu Bakr Ahmad ash-Shathai",
+      "id": 110
+    },
+    {
+      "category": "Hadith",
+      "text": "When the verse about those who remember Allah standing, sitting and lying down was revealed, the Prophet ﷺ said, \"Woe to the one who recites this verse and does not ponder over it.\"",
+      "source": "Sahih Ibn Hibban (2/386, no. 620); sahih",
+      "attribution": null,
+      "id": 111
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Jazari said, \"Recitation is a followed sunnah in which the one who comes later takes it from the one who preceded him.\"",
+      "source": "An-Nashr fi al-Qiraat al-Ashr 1/35",
+      "attribution": "Ibn al-Jazari",
+      "id": 112
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The first of men whose case will be decided on the Day of Standing will be a man who learnt knowledge, taught it and recited the Quran. Allah will say: You recited the Quran so that it be said: he is a reciter, and such was said. Then orders will be passed against him and he will be dragged on his face into Hell.\"",
+      "source": "Sahih Muslim (1905)",
+      "attribution": "The Prophet ﷺ",
+      "id": 113
+    },
+    {
+      "category": "Salaf",
+      "text": "Yusuf ibn Ali ibn Jabarah al-Hudhali said, \"I met 365 scholars, from the farthest west of the Maghrib to Fergana, east and west, mountains and sea. Had I known of anyone who surpassed me anywhere in the lands of Islam, I would have sought him out.\" Ibn al-Jazari commented, \"Such are the aspirations of lofty people in seeking knowledge.\"",
+      "source": "Ghayat an-Nihayah 2/398",
+      "attribution": "Yusuf ibn Ali ibn Jabarah al-Hudhali",
+      "id": 114
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Read the Quran and through it seek the Face of Allah, before there comes a nation that implements it like an arrow, reading it fast without reciting it slowly.\"",
+      "source": "Sunan Abi Dawud (830-831); Musnad Ahmad; hasan",
+      "attribution": "The Prophet ﷺ",
+      "id": 115
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam an-Nawawi noted, \"Abu Bakr as-Siddiq completed memorizing the entire Quran at 61 years of age, and Ibn Umar ibn Hammuyah memorized it at 80.\"",
+      "source": "Tahdhib al-Asma",
+      "attribution": null,
+      "id": 116
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever recites the Quran, let him ask Allah by it, for there will come a people who recite the Quran and beg from the people by it.\"",
+      "source": "Jami at-Tirmidhi (2917); hasan",
+      "attribution": "The Prophet ﷺ",
+      "id": 117
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam an-Nawawi said, \"Recitation of the Quran is the most established of all adhkar. Persevere in it so it is never neglected a single day or night.\"",
+      "source": null,
+      "attribution": "Imam an-Nawawi",
+      "id": 118
+    },
+    {
+      "category": "Hadith",
+      "text": "From the Prophet's ﷺ dream narrated by Samurah: \"This is a man to whom Allah gave knowledge of the Quran, and he sleeps on it at night and does not act upon it during the day.\"",
+      "source": "Sahih al-Bukhari (7047)",
+      "attribution": null,
+      "id": 119
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam an-Nawawi said, \"Reciting the Quran from the mushaf is better than reciting from memory, because looking at the mushaf is itself worship, thus combining recitation and looking.\"",
+      "source": null,
+      "attribution": "Imam an-Nawawi",
+      "id": 120
+    },
+    {
+      "category": "Hadith",
+      "text": "Abu Musa al-Ashari heard the Prophet ﷺ say, \"Recite the Quran and do not let a long time pass without reciting it, for that will harden your hearts as the hearts of those before you hardened.\"",
+      "source": "Sahih Muslim (1050)",
+      "attribution": null,
+      "id": 121
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Hajar said, \"Whoever regularly recites the Quran, his tongue becomes accustomed to it and recitation becomes easy. If he abandons it, recitation becomes heavy and difficult.\"",
+      "source": null,
+      "attribution": "Ibn Hajar",
+      "id": 122
+    },
+    {
+      "category": "Hadith",
+      "text": "In the farewell sermon the Prophet ﷺ said, \"I am leaving among you two things: the first is Allah's Book, in which there is guidance and light, so hold firmly to Allah's Book and adhere to it. It is Allah's Rope; whoever follows it is guided, and whoever abandons it is misguided.\"",
+      "source": "Sahih Muslim (2408)",
+      "attribution": "In the farewell sermon the Prophet ﷺ",
+      "id": 123
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"The Quran is the firm rope of Allah, the wise reminder and the straight path. Desires never deviate it, tongues never distort it, and its wonders never cease. Whoever speaks by it is truthful, whoever acts by it is rewarded, whoever judges by it is just, and whoever calls to it is guided to a straight path.\"",
+      "source": "Majmu al-Fatawa 13/329",
+      "attribution": "Ibn Taymiyyah",
+      "id": 124
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ used to say in his sermons, \"Indeed the best speech is Allah's Book, and the best guidance is Muhammad's guidance.\"",
+      "source": "Sahih Muslim (867)",
+      "attribution": "The Prophet ﷺ",
+      "id": 125
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"If a person reads the Quran and contemplates upon it, this is among the greatest causes protecting him from sins.\"",
+      "source": null,
+      "attribution": "Ibn Taymiyyah",
+      "id": 126
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said to Abdullah ibn Amr, \"Recite the whole Quran once a month... Recite it in seven days and do not increase upon that.\"",
+      "source": "Sahih al-Bukhari (1978), Sahih Muslim (1159)",
+      "attribution": "The Prophet ﷺ",
+      "id": 127
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"Whoever contemplates the Quran seeking guidance from it, the paths of truth will become clear to him.\"",
+      "source": null,
+      "attribution": "Ibn Taymiyyah",
+      "id": 128
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Recite the Quran, without going to extremes in it or falling short regarding it. Do not eat by it and do not be arrogant upon it.\"",
+      "source": "Musnad Ahmad (3/428); sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 129
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"I have not seen anything that nourishes the intellect and soul, protects the body, and guarantees happiness more than constantly pondering the Book of Allah.\"",
+      "source": null,
+      "attribution": "Ibn Taymiyyah",
+      "id": 130
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Allah does not listen to anything as He listens to a prophet reciting the Quran in a beautiful tone, chanting it aloud.\"",
+      "source": "Sahih al-Bukhari (5023), Sahih Muslim (792)",
+      "attribution": "The Prophet ﷺ",
+      "id": 131
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"Forgetfulness of the Quran is caused by sins.\"",
+      "source": null,
+      "attribution": "Ibn Taymiyyah",
+      "id": 132
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever does not recite the Quran in a beautiful voice is not from us.\"",
+      "source": "Sunan Abi Dawud (1471); also in Sahih al-Bukhari",
+      "attribution": "The Prophet ﷺ",
+      "id": 133
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"The Quran revives the hearts just as the earth is revived by rain.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 134
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"No group gathers in one of the houses of Allah, reciting the Book of Allah and studying it between them, except that tranquility descends upon them, mercy covers them, the angels encircle them, and Allah mentions them to those with Him.\"",
+      "source": "Sahih Muslim (2699)",
+      "attribution": "The Prophet ﷺ",
+      "id": 135
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"The keys to the life of the heart are pondering the Quran, earnest imploring in the last hours of the night, and abandoning sins.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 136
+    },
+    {
+      "category": "Hadith",
+      "text": "When Aishah was asked about the character of the Messenger of Allah ﷺ she replied, \"His character was the Quran.\"",
+      "source": "Sahih Muslim (746)",
+      "attribution": null,
+      "id": 137
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"The people of the Quran are those who know it, understand it, and act upon what is in it, even if they have not memorized all of it.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 138
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever memorizes ten verses from the beginning of Surah al-Kahf will be protected from the Dajjal.\"",
+      "source": "Sahih Muslim",
+      "attribution": "The Prophet ﷺ",
+      "id": 139
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"If people knew what lies in reading the Quran with reflection, they would devote themselves to it alone. When the reader meets a verse containing the cure his heart needs, he repeats it a hundred times or through the whole night. One verse recited with reflection is better than completing the Quran without contemplation.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 140
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Indeed there is a Surah of thirty verses in the Quran that intercedes for its companion until he is forgiven: Tabaarakalladhi biyadihil-mulk.\"",
+      "source": "Sunan Abi Dawud, at-Tirmidhi; sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 141
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"The pure heart never has enough of the Quran. It is not nourished except by its truth and not treated except by its remedy.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 142
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Qul huwa Allahu ahad equals one third of the Quran.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 143
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn al-Qayyim said, \"Our need for seeking refuge with the Muawwidhatayn is greater than our need for air, food, drink and clothing.\"",
+      "source": null,
+      "attribution": "Ibn al-Qayyim",
+      "id": 144
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said about Qul yaa ayyuhal-kaafiroon, \"It equals one fourth of the Quran.\"",
+      "source": "At-Tabarani; sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 145
+    },
+    {
+      "category": "Salaf",
+      "text": "Yahya ibn Muadh said, \"The cure of the heart lies in five things: reciting the Quran and pondering it, an empty stomach, standing at night in prayer, invoking Allah at dawn, and the company of the righteous.\"",
+      "source": null,
+      "attribution": "Yahya ibn Muadh",
+      "id": 146
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Do not make your houses graveyards. Indeed Shaytan flees from the house in which Surah al-Baqarah is recited.\"",
+      "source": "Sahih Muslim",
+      "attribution": "The Prophet ﷺ",
+      "id": 147
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh al-Albani said, \"Veneration of the Speech of Allah comes through implementing it, not through kissing its pages or decorating its covers.\"",
+      "source": null,
+      "attribution": "Shaykh al-Albani",
+      "id": 148
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Recite al-Baqarah, for taking hold of it is a blessing, leaving it is a regret, and the sorcerers cannot overcome it.\"",
+      "source": "Sahih Muslim (804)",
+      "attribution": "The Prophet ﷺ",
+      "id": 149
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Rajab said, \"How many verses of the Quran are recited to us while our hearts are like rocks, or harder still.\"",
+      "source": null,
+      "attribution": "Ibn Rajab",
+      "id": 150
+    },
+    {
+      "category": "Hadith",
+      "text": "When Ubay ibn Kab identified Ayat al-Kursi as the greatest verse, the Prophet ﷺ struck his chest and said, \"May Allah make knowledge pleasing to you, O Abul-Mundhir!\"",
+      "source": "Sahih Muslim",
+      "attribution": null,
+      "id": 151
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh Ibn Baz said, \"The listener participates with the reciter in the reward of every letter, and a good deed is rewarded tenfold.\"",
+      "source": null,
+      "attribution": "Shaykh Ibn Baz",
+      "id": 152
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever recites the last two verses of Surah al-Baqarah in a night, they will suffice him.\"",
+      "source": "Sahih al-Bukhari (5009)",
+      "attribution": "The Prophet ﷺ",
+      "id": 153
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh Ibn Baz said, \"The finest treatment for a hard heart is giving great attention to the Noble Quran, contemplating it, reciting it often, and abundant dhikr of Allah.\"",
+      "source": null,
+      "attribution": "Shaykh Ibn Baz",
+      "id": 154
+    },
+    {
+      "category": "Hadith",
+      "text": "Jibril gave the Prophet ﷺ glad tidings of two lights never given to any prophet before him: Fatihat al-Kitab and the closing verses of Surah al-Baqarah, adding, \"Never do you read a letter from either of them except that you are given it.\"",
+      "source": "Sahih Muslim",
+      "attribution": null,
+      "id": 155
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh al-Uthaymin said, \"Among the greatest means for the heart to remain steadfast and secure is abundant reading of the Quran.\"",
+      "source": null,
+      "attribution": "Shaykh al-Uthaymin",
+      "id": 156
+    },
+    {
+      "category": "Hadith",
+      "text": "Ibn Umar said the Prophet ﷺ told him, \"A Surah has been sent down upon me this night which is more beloved to me than one upon whom the sun has risen,\" then he recited, \"Indeed, We have granted you a manifest victory.\"",
+      "source": "Sahih al-Bukhari",
+      "attribution": "Ibn Umar",
+      "id": 157
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh al-Uthaymin said, \"Whoever purifies his heart from sins gains deeper understanding of the Quran, and whoever fills his heart with sins drifts further from understanding it.\"",
+      "source": null,
+      "attribution": "Shaykh al-Uthaymin",
+      "id": 158
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said to Ibn Masud, \"Recite the Quran for me.\" He said, \"Shall I recite to you when it was revealed to you?\" He replied, \"I love to hear it from someone other than me.\" So Ibn Masud recited until the Prophet's ﷺ eyes overflowed with tears.",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 159
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh al-Uthaymin said, \"If you find your faith increasing whenever you recite, that is a sign of triumph. But if you read and feel nothing, treat your heart, for a heart that takes no benefit from the Quran is a hardened and sick heart.\"",
+      "source": null,
+      "attribution": "Shaykh al-Uthaymin",
+      "id": 160
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ told Ubay ibn Kab, \"Allah has ordered me to recite upon you.\" Ubay asked, \"Did He mention my name?\" He said, \"Yes,\" and Ubay began to weep.",
+      "source": "Sahih Muslim",
+      "attribution": null,
+      "id": 161
+    },
+    {
+      "category": "Salaf",
+      "text": "Shaykh al-Uthaymin said, \"Whatever you seek from doctors to remove what is in your heart, you will never find anything equal to the Quran.\"",
+      "source": null,
+      "attribution": "Shaykh al-Uthaymin",
+      "id": 162
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"When the son of Adam recites a verse of prostration and prostrates, Shaytan departs weeping, saying: Woe to me! The son of Adam was commanded to prostrate and he prostrated, so Paradise is his. I was commanded to prostrate and refused, so the Fire is mine.\"",
+      "source": "Sahih Muslim, Musnad Ahmad",
+      "attribution": "The Prophet ﷺ",
+      "id": 163
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam al-Ajurri said, \"When the intelligent believer recites the Quran, he presents himself to it as to a mirror, seeing which of his deeds are beautiful and which are ugly. What his Master warns him against he avoids, what He threatens he fears, and what He encourages he desires.\"",
+      "source": null,
+      "attribution": "Imam al-Ajurri",
+      "id": 164
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Beautify the Quran with your voices, for verily the beautiful voice increases the beauty of the Quran.\"",
+      "source": "Mustadrak al-Hakim; sahih, also Abu Dawud and Ibn Majah",
+      "attribution": "The Prophet ﷺ",
+      "id": 165
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam al-Ajurri said, \"The Quran is for its true reciter a cure: he becomes rich without wealth, honored without tribe, and finds solace where others feel anxiety. His question when he begins a surah is not, when will I finish it, but rather, when will I be admonished by what I recite?\"",
+      "source": null,
+      "attribution": "Imam al-Ajurri",
+      "id": 166
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The best of people in voice with the Quran is the one whom, when you hear him recite, you sense that he fears Allah.\"",
+      "source": "Ad-Darimi; sahih",
+      "attribution": "The Prophet ﷺ",
+      "id": 167
+    },
+    {
+      "category": "Salaf",
+      "text": "Imam al-Ajurri said, \"It befits the bearer of the Quran to make the Quran a spring for his heart, rebuilding with it what has fallen ruinous within it.\"",
+      "source": null,
+      "attribution": "Imam al-Ajurri",
+      "id": 168
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Truly this Quran came down with sorrow, so when you recite it, weep. If you cannot weep, then make yourself weep, and chant it, for whoever does not chant it is not of us.\"",
+      "source": "Portion sahih in al-Bukhari and Ahmad",
+      "attribution": "The Prophet ﷺ",
+      "id": 169
+    },
+    {
+      "category": "Salaf",
+      "text": "Farwah ibn Nawfal said, \"Khabbab took hold of my hand and said, Gain closeness to Allah with whatever you are able to do, for indeed you will not gain closeness through anything more beloved to Allah than His own Speech.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (1463)",
+      "attribution": "Farwah ibn Nawfal",
+      "id": 170
+    },
+    {
+      "category": "Hadith",
+      "text": "Ibn Abbas said to a man who recited the whole Quran in three days, \"Were I to recite al-Baqarah in one night, pondering it deeply and reciting it rhythmically, that would be more preferable to me.\"",
+      "source": "Sahih",
+      "attribution": "Ibn Abbas",
+      "id": 171
+    },
+    {
+      "category": "Salaf",
+      "text": "Amr ibn Murrah said, \"I hate to pass by a parable of the Quran and not know it, because Allah the Exalted says, And these are parables which We give to people, and only the knowledgeable comprehend them.\"",
+      "source": "Hilyat al-Awliya (5/95)",
+      "attribution": "Amr ibn Murrah",
+      "id": 172
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Make matters easy and do not make them difficult. Give glad tidings and do not repel people.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 173
+    },
+    {
+      "category": "Salaf",
+      "text": "Sufyan ibn Uyaynah said, \"You will not reach the peak of this matter until nothing is more beloved to you than Allah, and whoever loves the Quran surely loves Allah, so understand what has been said to you.\"",
+      "source": "Hilyat al-Awliya (7/278)",
+      "attribution": "Sufyan ibn Uyaynah",
+      "id": 174
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Whoever makes all his concerns one concern, the concern of the Hereafter, Allah suffices him for his worldly concerns.\"",
+      "source": "Sahih; Ibn Majah, Hakim, others",
+      "attribution": "The Prophet ﷺ",
+      "id": 175
+    },
+    {
+      "category": "Salaf",
+      "text": "The Companion Urwah ibn al-Jad al-Bariqi said, \"Love of Allah the Mighty and Exalted is love of the Quran, and love of the Messenger is to act upon his Sunnah.\"",
+      "source": "Istinshaq Nasim al-Uns by Ibn Rajab (68)",
+      "attribution": "The Companion Urwah ibn al-Jad al-Bariqi",
+      "id": 176
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"The most beloved deeds to Allah are the most consistent ones, even if they are small.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 177
+    },
+    {
+      "category": "Salaf",
+      "text": "Malik ibn Dinar used to say, \"Whoever does not feel a sense of companionship in the Speech of Allah but does with the speech of creation, then indeed his knowledge has diminished, his heart has become blind and he has wasted his life.\"",
+      "source": "Rawdat al-Uqala (85)",
+      "attribution": "Malik ibn Dinar",
+      "id": 178
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"If one of you feels drowsy while reciting, he should lie down and sleep, for otherwise he may rise to seek forgiveness and end up cursing himself.\"",
+      "source": "Agreed upon",
+      "attribution": "The Prophet ﷺ",
+      "id": 179
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Taymiyyah said, \"Reciting the Quran in the commanded manner causes strong faith and increases it in certainty, tranquillity and cure.\"",
+      "source": "Majmu al-Fatawa (7/283)",
+      "attribution": "Ibn Taymiyyah",
+      "id": 180
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"He who learns knowledge by which the Face of Allah is sought, yet learns it only to gain the possessions of the world, will not smell the fragrance of Paradise on the Day of Resurrection.\"",
+      "source": "Sahih; Musnad Ahmad, Abu Dawud, Ibn Majah",
+      "attribution": "The Prophet ﷺ",
+      "id": 181
+    },
+    {
+      "category": "Salaf",
+      "text": "Anas ibn Malik reported that the wife of Uthman ibn Affan said when he was killed, \"You have killed him, yet he was someone who would spend the night awake with the Quran.\"",
+      "source": "Hilyat al-Awliya (1/57)",
+      "attribution": "Anas ibn Malik",
+      "id": 182
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"A people will come who will take this Quran and drink it the way water is drunk, and it will not go beyond their throats.\"",
+      "source": "Sahih via supporting routes; also al-Hakim",
+      "attribution": "The Prophet ﷺ",
+      "id": 183
+    },
+    {
+      "category": "Salaf",
+      "text": "Thabit al-Bunani said that his teacher Ibn Abi Laylah would pray Fajr, open his mushaf and read until sunrise.",
+      "source": "Siyar A'lam al-Nubala (4/265)",
+      "attribution": "Thabit al-Bunani",
+      "id": 184
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ warned of people who will recite the Quran and say, \"We have recited it, so who is more learned than us?\" and he said, \"They are from you and from this nation, and they are the fuel of the Fire.\"",
+      "source": "Hasan; Sahih at-Targhib, at-Tabarani",
+      "attribution": null,
+      "id": 185
+    },
+    {
+      "category": "Salaf",
+      "text": "Talq said, \"The person with the best voice in reciting the Quran is the one who, when he recites it, you see that he has reverential fear of Allah the Almighty and Exalted.\"",
+      "source": "al-Zuhd by Imam Ahmad (217)",
+      "attribution": "Talq",
+      "id": 186
+    },
+    {
+      "category": "Hadith",
+      "text": "The Prophet ﷺ said, \"Three people will recite the Quran: the believer, the hypocrite and the sinner. The hypocrite disbelieves in it, the sinner earns by it, and the believer acts by it.\"",
+      "source": "Sahih via combined routes; Ahmad, Ibn Abi Hatim",
+      "attribution": "The Prophet ﷺ",
+      "id": 187
+    },
+    {
+      "category": "Salaf",
+      "text": "Ishaq ibn Ibrahim said, \"The recitation of al-Fudayl ibn Iyad was solemn, slow and deliberate as though he was addressing a person, and when he passed by a verse mentioning Paradise he would continuously repeat it.\"",
+      "source": "Sifat al-Safwah (2/466)",
+      "attribution": "Ishaq ibn Ibrahim",
+      "id": 188
+    },
+    {
+      "category": "Salaf",
+      "text": "Nafi was asked what Ibn Umar would do in his house. He said, \"You would not be able to do it: ablution for every prayer and the mushaf in between them.\"",
+      "source": "Tabaqat Ibn Sad (4/170)",
+      "attribution": "Nafi was asked what Ibn Umar would do in his house. He",
+      "id": 189
+    },
+    {
+      "category": "Salaf",
+      "text": "The sister of Malik ibn Dinar was asked what he used to preoccupy himself with at home. She said, \"The mushaf and recitation.\"",
+      "source": "Siyar A'lam al-Nubala (8/111)",
+      "attribution": null,
+      "id": 190
+    },
+    {
+      "category": "Salaf",
+      "text": "Abu Abdullah ibn Bishr said, \"Abu Sahl al-Qattan was our neighbour, and he used to pray the night perpetually and recite, and because of his abundant study the Quran became as though it was right in front of his eyes.\"",
+      "source": "Siyar A'lam al-Nubala (15/521)",
+      "attribution": "Abu Abdullah ibn Bishr",
+      "id": 191
+    },
+    {
+      "category": "Salaf",
+      "text": "Abu Ishaq al-Sabi'i used to recite a thousand verses every single night.",
+      "source": "Musnad Ibn al-Jad (74)",
+      "attribution": null,
+      "id": 192
+    },
+    {
+      "category": "Salaf",
+      "text": "Urwah ibn al-Zubayr would read a quarter of the Quran every single day from his mushaf and pray the night reciting it. The only night he missed his portion was the night his leg was amputated, and he returned to completing it the following night.",
+      "source": "Hilyat al-Awliya (2/178); Siyar A'lam al-Nubala (4/414)",
+      "attribution": null,
+      "id": 193
+    },
+    {
+      "category": "Salaf",
+      "text": "Muhammad ibn al-Muthanna said, \"I stayed one night with Ibn Ulayyah and he read a third of the Quran.\"",
+      "source": "Siyar A'lam al-Nubala (9/116)",
+      "attribution": "Muhammad ibn al-Muthanna",
+      "id": 194
+    },
+    {
+      "category": "Salaf",
+      "text": "A man told Imam Abdullah ibn al-Mubarak that he had read the whole Quran in one night. Ibn al-Mubarak replied that he knew a man who spent the whole night repeating, Competition for piling up worldly things distracts you, unable to go beyond it, and he meant himself.",
+      "source": "Siyar A'lam al-Nubala (8/397)",
+      "attribution": null,
+      "id": 195
+    },
+    {
+      "category": "Salaf",
+      "text": "Abdullah ibn Wahb heard Muhammad ibn Kab al-Quradhi say, \"For me to recite Surah az-Zalzalah and al-Qariah through the night, repeating them both and pondering over them without adding anything else, is more beloved to me than reading the Quran quickly.\"",
+      "source": "Hilyat al-Awliya (3/214)",
+      "attribution": null,
+      "id": 196
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan took an oath by Allah and said, \"By Allah, O son of Adam, if you read the Quran and believed in it, your sadness in this world would surely be long, your fear would surely be severe and your weeping would surely be much.\"",
+      "source": "Hilyat al-Awliya (2/133)",
+      "attribution": "Al-Hasan took an oath by Allah and",
+      "id": 197
+    },
+    {
+      "category": "Salaf",
+      "text": "Khaythamah used to complete reciting the entire Quran every three days.",
+      "source": "Hilyat al-Awliya (4/115)",
+      "attribution": null,
+      "id": 198
+    },
+    {
+      "category": "Salaf",
+      "text": "Maruf ibn Wasil used to complete the Quran every three days whether travelling or resident.",
+      "source": "Sifat al-Safwah (2/694)",
+      "attribution": null,
+      "id": 199
+    },
+    {
+      "category": "Salaf",
+      "text": "Amr ibn Abd al-Rahman ibn Muhayriz said, \"My grandfather used to complete reciting the Quran every week.\"",
+      "source": "Siyar A'lam al-Nubala (4/495)",
+      "attribution": "Amr ibn Abd al-Rahman ibn Muhayriz",
+      "id": 200
+    },
+    {
+      "category": "Salaf",
+      "text": "When Ibn Idris was dying, his daughter cried, so he told her, \"Do not cry my dear daughter, for the Quran was completed in this house four thousand times.\"",
+      "source": "Siyar A'lam al-Nubala (8/44)",
+      "attribution": null,
+      "id": 201
+    },
+    {
+      "category": "Salaf",
+      "text": "Ash-Sha'bi, who met over five hundred Companions, said, \"When you read the Quran, cause your heart to understand it and cause your ears to listen to it.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (1927)",
+      "attribution": "Ash-Sha'bi, who met over five hundred Companions,",
+      "id": 202
+    },
+    {
+      "category": "Salaf",
+      "text": "Nafi said, \"When Ibn Umar read the Quran he disliked being spoken to, and would not speak until he had completed what he intended.\"",
+      "source": "al-Musannaf (7/119)",
+      "attribution": "Nafi",
+      "id": 203
+    },
+    {
+      "category": "Salaf",
+      "text": "Nafi said, \"When Ibn Umar recited in his prayer and passed by a verse mentioning Paradise he would stop and ask Allah for Paradise, supplicating and crying, and when he passed by a verse mentioning the Fire he would stop and seek forgiveness from Allah the Almighty and Exalted.\"",
+      "source": "al-Zuhd by Imam Ahmad (241)",
+      "attribution": "Nafi",
+      "id": 204
+    },
+    {
+      "category": "Salaf",
+      "text": "Nafi said, \"When Ibn Umar reached the verse, Has the time not come for the hearts of the believers to be humbled at the remembrance of Allah, he would cry until he was overwhelmed with weeping.\"",
+      "source": "al-Musannaf (7/136)",
+      "attribution": "Nafi",
+      "id": 205
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibn Abi Mulaykah said, \"I accompanied Ibn Abbas from Makkah to Madinah. When he stood in prayer at night he recited, And with the throes of death will come the truth, that is what you were trying to escape, slowly while sobbing profusely.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (2028)",
+      "attribution": "Ibn Abi Mulaykah",
+      "id": 206
+    },
+    {
+      "category": "Salaf",
+      "text": "The slave-girl of al-Hasan al-Basri was asked what she saw from him. She replied, \"I saw him open the mushaf, and then I saw his eyes flow with tears.\"",
+      "source": "Shuab al-Iman by al-Bayhaqi (2043)",
+      "attribution": null,
+      "id": 207
+    },
+    {
+      "category": "Salaf",
+      "text": "Ibrahim al-Taymi said, \"I heard a young disciple of Abdullah ibn Masud reciting Surah az-Zalzalah until he reached, Whoever does an atom's weight of good will see it, and whoever does an atom's weight of evil will see it. He cried and said, Indeed this reckoning is severe.\"",
+      "source": "al-Zuhd al-Kabir (324)",
+      "attribution": "Ibrahim al-Taymi",
+      "id": 208
+    },
+    {
+      "category": "Salaf",
+      "text": "One of the Salaf would say to himself, \"O soul, read the Quran as though you are hearing it from Allah when He spoke it,\" and this is when the sweetness came.",
+      "source": "Siyar A'lam al-Nubala (8/180)",
+      "attribution": "One of the Salaf",
+      "id": 209
+    },
+    {
+      "category": "Salaf",
+      "text": "Al-Hasan said, \"Seek out sweetness in three things: in prayer, in the Quran and in dhikr. If you find it, continue and receive glad tidings, but if you do not find it, know that your door is closed.\"",
+      "source": "Hilyat al-Awliya (6/171)",
+      "attribution": "Al-Hasan",
+      "id": 210
+    },
+    {
+      "category": "Salaf",
+      "text": "Mujahid said, \"Ibn Umar was praying and reached the verse, You will not attain piety until you spend from what you love, so while still praying he freed a slave-girl he had wanted to marry.\"",
+      "source": "al-Zuhd by Imam Ahmad (242)",
+      "attribution": "Mujahid",
+      "id": 211
+    }
+  ]
+}
