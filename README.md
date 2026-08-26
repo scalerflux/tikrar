@@ -2,7 +2,7 @@
 
 Tikrar is a focused Quran memorization companion for building a consistent hifz routine. It combines a daily revision plan with progress tracking, audio/voice support, tafseer, ustad sessions, and gentle reminders.
 
-[Download the latest Android APK](https://github.com/scalerflux/tikrar/releases/download/v1.0.0/Tikrar-1.0.0.apk) · [View the v1.0.0 release](https://github.com/scalerflux/tikrar/releases/tag/v1.0.0)
+[Download the latest Android APK](https://github.com/scalerflux/tikrar/releases/download/v1.0.1/Tikrar-1.0.1.apk) · [View the v1.0.1 release](https://github.com/scalerflux/tikrar/releases/tag/v1.0.1)
 
 ## What is included
 

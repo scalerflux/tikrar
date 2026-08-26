@@ -125,6 +125,24 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         </View>
 
+        <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
+
+        <View style={styles.searchBar}>
+          <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search by Day #, Surah, Face or Tour..."
+            placeholderTextColor={Theme.colors.textMuted}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+          />
+          {searchQuery ? (
+            <TouchableOpacity onPress={() => setSearchQuery('')}>
+              <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
+            </TouchableOpacity>
+          ) : null}
+        </View>
+
         <FlatList
           ref={flatListRef}
           style={styles.list}
@@ -135,26 +153,6 @@ export default function ScheduleScreen() {
           initialNumToRender={20}
           maxToRenderPerBatch={30}
           windowSize={10}
-          ListHeaderComponent={
-            <>
-              <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
-              <View style={styles.searchBar}>
-                <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="Search by Day #, Surah, Face or Tour..."
-                  placeholderTextColor={Theme.colors.textMuted}
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                />
-                {searchQuery ? (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
-                    <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
-                  </TouchableOpacity>
-                ) : null}
-              </View>
-            </>
-          }
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Ionicons name="search-outline" size={28} color={Theme.colors.textMuted} />

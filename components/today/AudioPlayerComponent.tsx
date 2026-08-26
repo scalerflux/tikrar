@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect } from 'expo-router';
 import { Theme } from '../../constants/theme';
 import { AudioService, getReciterName } from '../../services/audio-service';
 import { SURAH_LIST } from '../../data/surah-metadata';
@@ -42,13 +43,19 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
   const scrollRef = useRef<ScrollView>(null);
   const [reciterId, setReciterId] = useState<string>('qahtani');
 
-  useEffect(() => {
-    let isMounted = true;
-    getUserSetting('reciter', 'qahtani').then((v) => {
-      if (isMounted) setReciterId(v === 'qatami' ? 'qahtani' : v);
-    });
-    return () => { isMounted = false; };
-  }, []);
+  // Settings is a separate tab that stays mounted in Expo Router. Refreshing
+  // on focus makes a newly selected reciter take effect without restarting
+  // the app or relying on a stale AudioPlayerComponent instance.
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      getUserSetting('reciter', 'qahtani').then((value) => {
+        if (!isMounted) return;
+        setReciterId(value === 'qatami' ? 'qahtani' : value);
+      });
+      return () => { isMounted = false; };
+    }, [])
+  );
 
   useEffect(() => {
     return () => {
