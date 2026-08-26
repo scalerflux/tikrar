@@ -20,240 +20,240 @@
     "faceNumber": "3 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1"
   },
   {
     "dayNumber": 4,
     "faceNumber": "3 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 2"
   },
   {
     "dayNumber": 5,
     "faceNumber": "4 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 3 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 3 h1"
   },
   {
     "dayNumber": 6,
     "faceNumber": "4 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 3 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 3 h2"
   },
   {
     "dayNumber": 7,
     "faceNumber": "5 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 4 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 4 h1"
   },
   {
     "dayNumber": 8,
     "faceNumber": "5 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 4 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 4 h2"
   },
   {
     "dayNumber": 9,
     "faceNumber": "6 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 5 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 5 h1"
   },
   {
     "dayNumber": 10,
     "faceNumber": "6 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 5 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 5 h2"
   },
   {
     "dayNumber": 11,
     "faceNumber": "7 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 6 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 6 h1"
   },
   {
     "dayNumber": 12,
     "faceNumber": "7 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 6 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 6 h2"
   },
   {
     "dayNumber": 13,
     "faceNumber": "8 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 7 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 7 h1"
   },
   {
     "dayNumber": 14,
     "faceNumber": "8 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 7 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 7 h2"
   },
   {
     "dayNumber": 15,
     "faceNumber": "9 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 8 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 8 h1"
   },
   {
     "dayNumber": 16,
     "faceNumber": "9 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 8 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 8 h2"
   },
   {
     "dayNumber": 17,
     "faceNumber": "10 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 9 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 9 h1"
   },
   {
     "dayNumber": 18,
     "faceNumber": "10 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 9 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 9 h2"
   },
   {
     "dayNumber": 19,
     "faceNumber": "11 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 10 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 10 h1"
   },
   {
     "dayNumber": 20,
     "faceNumber": "11 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 10 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 10 h2"
   },
   {
     "dayNumber": 21,
     "faceNumber": "12 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 11 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 11 h1"
   },
   {
     "dayNumber": 22,
     "faceNumber": "12 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 11 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 11 h2"
   },
   {
     "dayNumber": 23,
     "faceNumber": "13 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 12 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 12 h1"
   },
   {
     "dayNumber": 24,
     "faceNumber": "13 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 12 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 12 h2"
   },
   {
     "dayNumber": 25,
     "faceNumber": "14 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 13 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 13 h1"
   },
   {
     "dayNumber": 26,
     "faceNumber": "14 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 13 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 13 h2"
   },
   {
     "dayNumber": 27,
     "faceNumber": "15 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 14 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 14 h1"
   },
   {
     "dayNumber": 28,
     "faceNumber": "15 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 14 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 14 h2"
   },
   {
     "dayNumber": 29,
     "faceNumber": "16 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 15 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 15 h1"
   },
   {
     "dayNumber": 30,
     "faceNumber": "16 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 15 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 15 h2"
   },
   {
     "dayNumber": 31,
     "faceNumber": "17 h1",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 16 h1",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 16 h1"
   },
   {
     "dayNumber": 32,
     "faceNumber": "17 h2",
     "surahName": "Al-Baqarah",
     "tourNumber": 0,
-    "revisionRange": "1 → 16 h2",
-    "connectionRange": ""
+    "revisionRange": "",
+    "connectionRange": "1 → 16 h2"
   },
   {
     "dayNumber": 33,

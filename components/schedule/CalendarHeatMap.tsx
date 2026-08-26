@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { Theme } from '../../constants/theme';
-import { Ionicons } from '@expo/vector-icons';
 
 interface CalendarHeatMapProps {
   completedDays: number[];
@@ -12,26 +11,21 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const totalDays = 1206;
-  const cols = 18;
-  const rows = Math.ceil(totalDays / cols);
+  const colsPerRow = 52;
+  const rows = Math.ceil(totalDays / colsPerRow);
+  const completedSet = useMemo(() => new Set(completedDays), [completedDays]);
 
   const getDayColor = (dayNum: number) => {
     if (dayNum > totalDays) return Theme.colors.bgCard;
     if (dayNum === currentDay) return Theme.colors.accentGold;
-    if (completedDays.includes(dayNum)) {
-      const progress = dayNum / totalDays;
-      if (progress < 0.25) return '#10B981';
-      if (progress < 0.5) return '#059669';
-      if (progress < 0.75) return '#047857';
-      return '#065F46';
-    }
-    if (dayNum < currentDay) return '#1F2937';
-    return Theme.colors.bgCard;
+    if (completedSet.has(dayNum)) return '#1FA774';
+    if (dayNum < currentDay) return '#27364A';
+    return '#122137';
   };
 
   const getDayStatus = (dayNum: number) => {
     if (dayNum === currentDay) return 'Today';
-    if (completedDays.includes(dayNum)) return 'Completed';
+    if (completedSet.has(dayNum)) return 'Completed';
     if (dayNum < currentDay) return 'Missed';
     return 'Upcoming';
   };
@@ -39,37 +33,40 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Memorization Journey</Text>
-        <View style={styles.legend}>
+        <View>
+          <Text style={styles.title}>Memorization Journey</Text>
+          <Text style={styles.subtitle}>Tap a day to inspect its status</Text>
+        </View>
+      </View>
+      <View style={styles.legend}>
           <View style={styles.legendItem}>
             <View style={[styles.legendBox, { backgroundColor: Theme.colors.accentGold }]} />
             <Text style={styles.legendText}>Today</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: '#10B981' }]} />
+            <View style={[styles.legendBox, { backgroundColor: '#1FA774' }]} />
             <Text style={styles.legendText}>Done</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: '#1F2937' }]} />
+            <View style={[styles.legendBox, { backgroundColor: '#27364A' }]} />
             <Text style={styles.legendText}>Missed</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: Theme.colors.bgCard }]} />
+            <View style={[styles.legendBox, { backgroundColor: '#122137' }]} />
             <Text style={styles.legendText}>Ahead</Text>
           </View>
-        </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <View style={styles.grid}>
           {Array.from({ length: rows }).map((_, rowIndex) => (
             <View key={rowIndex} style={styles.row}>
-              {Array.from({ length: cols }).map((_, colIndex) => {
-                const dayNum = rowIndex * cols + colIndex + 1;
+              {Array.from({ length: colsPerRow }).map((_, colIndex) => {
+                const dayNum = rowIndex * colsPerRow + colIndex + 1;
                 if (dayNum > totalDays) return null;
-                
+
                 const isSelected = selectedDay === dayNum;
-                
+
                 return (
                   <TouchableOpacity
                     key={dayNum}
@@ -99,8 +96,8 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   );
 };
 
-const CELL_SIZE = 14;
-const CELL_GAP = 3;
+const CELL_SIZE = 10;
+const CELL_GAP = 2;
 
 const styles = StyleSheet.create({
   container: {
@@ -115,16 +112,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Theme.spacing.sm,
+    marginBottom: 4,
   },
   title: {
     color: Theme.colors.textPrimary,
     fontSize: 14,
     fontWeight: '700',
   },
+  subtitle: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 3 },
   legend: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
+    marginBottom: Theme.spacing.sm,
   },
   legendItem: {
     flexDirection: 'row',
@@ -140,10 +140,13 @@ const styles = StyleSheet.create({
     color: Theme.colors.textSecondary,
     fontSize: 9,
   },
+  scrollContent: {
+    paddingRight: Theme.spacing.sm,
+  },
   grid: {
     flexDirection: 'column',
     gap: CELL_GAP,
-    paddingRight: Theme.spacing.sm,
+    paddingVertical: 2,
   },
   row: {
     flexDirection: 'row',
@@ -153,6 +156,10 @@ const styles = StyleSheet.create({
     width: CELL_SIZE,
     height: CELL_SIZE,
     borderRadius: 3,
+  },
+  emptyCell: {
+    backgroundColor: 'transparent',
+    borderWidth: 0,
   },
   selectedCell: {
     borderWidth: 2,

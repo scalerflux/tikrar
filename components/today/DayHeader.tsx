@@ -9,6 +9,8 @@ interface DayHeaderProps {
   faceNumber: string;
   tourNumber: number;
   streak: number;
+  timeLeft: string;
+  timeLeftColor: string;
 }
 
 export const DayHeader: React.FC<DayHeaderProps> = ({
@@ -17,6 +19,8 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
   faceNumber,
   tourNumber,
   streak,
+  timeLeft,
+  timeLeftColor,
 }) => {
   return (
     <View style={styles.container}>
@@ -30,11 +34,22 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
         </View>
       </View>
 
-      <Text style={styles.surahTitle}>{surahName}</Text>
-      <View style={styles.detailsRow}>
-        <Text style={styles.detailText}>Page Face: <Text style={styles.detailHighlight}>{faceNumber || '—'}</Text></Text>
-        <Text style={styles.dot}>•</Text>
-        <Text style={styles.detailText}>Tour: <Text style={styles.detailHighlight}>#{tourNumber}</Text></Text>
+      <View style={styles.contentRow}>
+        <View style={styles.mainInfo}>
+          <Text style={styles.surahTitle}>{surahName}</Text>
+          <View style={styles.detailsRow}>
+            <Text style={styles.detailText}>Page Face: <Text style={styles.detailHighlight}>{faceNumber || '—'}</Text></Text>
+            <Text style={styles.dot}>•</Text>
+            <Text style={styles.detailText}>Tour: <Text style={styles.detailHighlight}>#{tourNumber}</Text></Text>
+          </View>
+        </View>
+        <View style={styles.timeColumn}>
+          <Text style={styles.timeRemainingLabel}>Time remaining</Text>
+          <View style={styles.clockPill}>
+            <Ionicons name="time-outline" size={14} color={timeLeftColor} />
+            <Text style={[styles.timeValue, { color: timeLeftColor }]}>{timeLeft}</Text>
+          </View>
+        </View>
       </View>
     </View>
   );
@@ -52,8 +67,17 @@ const styles = StyleSheet.create({
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: Theme.spacing.sm,
+    alignItems: 'flex-start',
+    marginBottom: Theme.spacing.md,
+  },
+  contentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    gap: Theme.spacing.sm,
+  },
+  mainInfo: {
+    flex: 1,
+    minWidth: 0,
   },
   dayBadge: {
     backgroundColor: Theme.colors.accentGoldMuted,
@@ -87,7 +111,7 @@ const styles = StyleSheet.create({
     color: Theme.colors.textPrimary,
     fontSize: 24,
     fontWeight: '800',
-    marginVertical: 4,
+    marginBottom: 4,
   },
   detailsRow: {
     flexDirection: 'row',
@@ -105,5 +129,32 @@ const styles = StyleSheet.create({
   dot: {
     color: Theme.colors.textMuted,
     marginHorizontal: 8,
+  },
+  timeRemainingLabel: {
+    color: Theme.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  timeColumn: {
+    alignItems: 'flex-end',
+    gap: 6,
+    minWidth: 132,
+  },
+  clockPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(10, 22, 40, 0.6)',
+    borderRadius: Theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  timeValue: {
+    fontSize: 14,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
 });

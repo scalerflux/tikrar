@@ -22,6 +22,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
   const [recordedUri, setRecordedUri] = useState<string | null>(null);
   const [isPlayingRecording, setIsPlayingRecording] = useState(false);
   const [reciteCount, setReciteCount] = useState(0);
+  const lastPlayedUriRef = React.useRef<string | null>(null);
 
   React.useEffect(() => {
     if (playbackStatus.didJustFinish) {
@@ -29,12 +30,23 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
     }
   }, [playbackStatus.didJustFinish]);
 
+  React.useEffect(() => {
+    setIsPlayingRecording(playbackStatus.playing);
+  }, [playbackStatus.playing]);
+
   const startRecording = async () => {
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
         Alert.alert('Permission required', 'Microphone access is needed to record your recitation.');
         return;
+      }
+
+      if (playbackStatus.playing) {
+        try {
+          playbackPlayer.pause();
+        } catch {}
+        setIsPlayingRecording(false);
       }
 
       await setAudioModeForRecording();
@@ -68,10 +80,40 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
     }
   };
 
-  const playRecording = async () => {
+  const togglePlayback = async () => {
     if (!recordedUri) return;
     try {
+      if (playbackStatus.playing) {
+        playbackPlayer.pause();
+        setIsPlayingRecording(false);
+        return;
+      }
+
       await setAudioModeForPlayback();
+
+      const isNewUri = lastPlayedUriRef.current !== recordedUri;
+
+      if (!isNewUri && playbackStatus.didJustFinish) {
+        try {
+          await playbackPlayer.seekTo(0);
+        } catch {}
+        playbackPlayer.play();
+        setIsPlayingRecording(true);
+        return;
+      }
+
+      if (
+        !isNewUri &&
+        playbackStatus.isLoaded &&
+        playbackStatus.currentTime > 0 &&
+        playbackStatus.currentTime < (playbackStatus.duration || 1)
+      ) {
+        playbackPlayer.play();
+        setIsPlayingRecording(true);
+        return;
+      }
+
+      lastPlayedUriRef.current = recordedUri;
       playbackPlayer.replace({ uri: recordedUri });
       playbackPlayer.play();
       setIsPlayingRecording(true);
@@ -79,6 +121,8 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
       console.error('Error playing recording', err);
     }
   };
+
+  const playRecording = togglePlayback;
 
   const setAudioModeForRecording = async () => {
     const { setAudioModeAsync } = await import('expo-audio');

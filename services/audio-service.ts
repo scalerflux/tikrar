@@ -1,7 +1,37 @@
 import { AudioPlayer, createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 
-// Sheikh Nāṣir Al-Qaṭānī reciter identifier on EveryAyah
-const RECITER_BASE_URL = 'https://everyayah.com/data/Nasser_Alqatami_128kbps/';
+export const RECITERS = {
+  // Level 1 - Tajwid based, monotone foundation
+  suwayd: { id: 'suwayd', name: 'Dr. Ayman Suwayd (Tajwid Based)', level: 1, baseUrl: 'https://everyayah.com/data/Ayman_Sowaid_64kbps/' },
+  minshawi: { id: 'minshawi', name: 'Sheikh Minshāwī', level: 1, baseUrl: 'https://everyayah.com/data/Minshawy_Murattal_128kbps/' },
+  hudayfi: { id: 'hudayfi', name: 'Sheikh Ḥuḏayfī', level: 1, baseUrl: 'https://everyayah.com/data/Hudhaify_128kbps/' },
+  husary: { id: 'husary', name: 'Sheikh Khālid Al-Ḥuṣarī', level: 1, baseUrl: 'https://everyayah.com/data/Husary_128kbps/' },
+  // Level 2 - Slightly harder, repetitive tone
+  ayyub: { id: 'ayyub', name: 'Sheikh Muḥammad Ayyūb', level: 2, baseUrl: 'https://everyayah.com/data/Muhammad_Ayyub_128kbps/' },
+  talib: { id: 'talib', name: 'Sheikh Aḥmad At-Ṭālib', level: 2, baseUrl: 'https://everyayah.com/data/Ahmad_Talab_128kbps/' },
+  jabir: { id: 'jabir', name: 'Sheikh ʿAlī Jābir', level: 2, baseUrl: 'https://everyayah.com/data/Ali_Jaber_64kbps/' },
+  shatiri: { id: 'shatiri', name: 'Sheikh Abū Bakr Shāṭirī', level: 2, baseUrl: 'https://everyayah.com/data/Abu_Bakr_Ash-Shatri_64kbps/' },
+  shuraym: { id: 'shuraym', name: 'Sheikh Shuraym', level: 2, baseUrl: 'https://everyayah.com/data/Saud_Al-Shuraim_128kbps/' },
+  sudays: { id: 'sudays', name: 'Sheikh Sudays', level: 2, baseUrl: 'https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/' },
+  matrud: { id: 'matrud', name: 'Sheikh ʿAbdullāh Maṭrūd', level: 2, baseUrl: 'https://everyayah.com/data/Abdullah_Matroud_128kbps/' },
+  qahtani: { id: 'qahtani', name: 'Sheikh Nāṣir Al-Qaḥṭānī', level: 2, baseUrl: 'https://everyayah.com/data/Nasser_Alqatami_128kbps/' },
+} as const;
+
+export type ReciterId = keyof typeof RECITERS;
+
+const DEFAULT_RECITER: ReciterId = 'qahtani';
+
+export function getReciterBaseUrl(reciterId: string = DEFAULT_RECITER): string {
+  return RECITERS[reciterId as ReciterId]?.baseUrl || RECITERS[DEFAULT_RECITER].baseUrl;
+}
+
+export function getReciterName(reciterId: string = DEFAULT_RECITER): string {
+  return RECITERS[reciterId as ReciterId]?.name || RECITERS[DEFAULT_RECITER].name;
+}
+
+export function getReciterLevel(reciterId: string = DEFAULT_RECITER): number {
+  return RECITERS[reciterId as ReciterId]?.level || 1;
+}
 
 export interface AudioPlayState {
   isPlaying: boolean;
@@ -14,20 +44,24 @@ export interface AudioPlayState {
 
 export class AudioService {
   private static player: AudioPlayer | null = null;
+  private static sequenceUrls: string[] = [];
+  private static currentSequenceIndex: number = 0;
+  private static statusCallback: ((status: AudioPlayState) => void) | null = null;
 
   static getSurahAudioUrl(surahNumber: number): string {
     const padSurah = surahNumber.toString().padStart(3, '0');
     return `https://server6.mp3quran.net/qtm/${padSurah}.mp3`;
   }
 
-  static getAyahAudioUrl(surahNumber: number, ayahNumber: number): string {
+  static getAyahAudioUrl(surahNumber: number, ayahNumber: number, reciterId: string = DEFAULT_RECITER): string {
     const padSurah = surahNumber.toString().padStart(3, '0');
     const padAyah = ayahNumber.toString().padStart(3, '0');
-    return `${RECITER_BASE_URL}${padSurah}${padAyah}.mp3`;
+    return `${getReciterBaseUrl(reciterId)}${padSurah}${padAyah}.mp3`;
   }
 
   static async playAyahSequence(
     urls: string[],
+    startIndex: number = 0,
     onStatusUpdate?: (status: AudioPlayState) => void
   ): Promise<void> {
     try {
@@ -40,38 +74,41 @@ export class AudioService {
 
       if (urls.length === 0) return;
 
-      let index = 0;
-      const player = createAudioPlayer({ uri: urls[0] });
+      this.sequenceUrls = urls;
+      this.currentSequenceIndex = Math.max(0, Math.min(startIndex, urls.length - 1));
+      this.statusCallback = onStatusUpdate || null;
+
+      const player = createAudioPlayer({ uri: urls[this.currentSequenceIndex] });
       this.player = player;
 
       player.addListener('playbackStatusUpdate', (status) => {
         if (!status.isLoaded) return;
-        if (onStatusUpdate) {
-          onStatusUpdate({
+        if (this.statusCallback) {
+          this.statusCallback({
             isPlaying: status.playing,
             positionMillis: Math.round(status.currentTime * 1000),
             durationMillis: Math.round(status.duration * 1000),
             playCount: 0,
-            ayahIndex: index,
-            totalAyahs: urls.length,
+            ayahIndex: this.currentSequenceIndex,
+            totalAyahs: this.sequenceUrls.length,
           });
         }
         if (status.didJustFinish) {
-          index++;
-          if (index >= urls.length) {
-            if (onStatusUpdate) {
-              onStatusUpdate({
+          this.currentSequenceIndex++;
+          if (this.currentSequenceIndex >= this.sequenceUrls.length) {
+            if (this.statusCallback) {
+              this.statusCallback({
                 isPlaying: false,
                 positionMillis: 0,
                 durationMillis: 0,
                 playCount: 1,
-                ayahIndex: urls.length - 1,
-                totalAyahs: urls.length,
+                ayahIndex: this.sequenceUrls.length - 1,
+                totalAyahs: this.sequenceUrls.length,
               });
             }
           } else if (this.player === player) {
             try {
-              player.replace({ uri: urls[index] });
+              player.replace({ uri: this.sequenceUrls[this.currentSequenceIndex] });
               player.play();
             } catch (e) {
               console.error('Error advancing ayah:', e);
@@ -83,6 +120,29 @@ export class AudioService {
       player.play();
     } catch (error) {
       console.error('Error playing audio sequence:', error);
+    }
+  }
+
+  static async jumpToAyah(index: number): Promise<void> {
+    if (!this.player || this.sequenceUrls.length === 0) return;
+    if (index < 0 || index >= this.sequenceUrls.length) return;
+
+    this.currentSequenceIndex = index;
+    try {
+      this.player.replace({ uri: this.sequenceUrls[this.currentSequenceIndex] });
+      this.player.play();
+      if (this.statusCallback) {
+        this.statusCallback({
+          isPlaying: true,
+          positionMillis: 0,
+          durationMillis: 0,
+          playCount: 0,
+          ayahIndex: this.currentSequenceIndex,
+          totalAyahs: this.sequenceUrls.length,
+        });
+      }
+    } catch (e) {
+      console.error('Error jumping to ayah:', e);
     }
   }
 
@@ -141,5 +201,16 @@ export class AudioService {
       }
       this.player = null;
     }
+  }
+
+  static isSequenceFinished(): boolean {
+    return (
+      this.sequenceUrls.length > 0 &&
+      this.currentSequenceIndex >= this.sequenceUrls.length
+    );
+  }
+
+  static getCurrentSequenceIndex(): number {
+    return this.currentSequenceIndex;
   }
 }
