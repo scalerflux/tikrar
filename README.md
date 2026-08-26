@@ -80,4 +80,4 @@ __tests__/             Unit tests for core behavior
 
 ## License
 
-See the repository for the current license and contribution terms.
+Tikrar's source code is released under the [MIT License](LICENSE). Third-party dependencies, bundled media, Quran content, translations, recitations, and other externally sourced material remain subject to their respective licenses and attribution requirements.
