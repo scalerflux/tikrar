@@ -618,7 +618,9 @@ export default function SettingsScreen() {
                       >
                         <Ionicons name={isPlaying ? 'pause' : 'play'} size={14} color={isPlaying ? Theme.colors.bgDark : Theme.colors.accentGold} />
                       </TouchableOpacity>
-                      <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={selected ? Theme.colors.accentGold : Theme.colors.textMuted} />
+                      <TouchableOpacity onPress={() => handleSelectReciter(r.id)} activeOpacity={0.7}>
+                        <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={selected ? Theme.colors.accentGold : Theme.colors.textMuted} />
+                      </TouchableOpacity>
                     </View>
                   );
                 })}
