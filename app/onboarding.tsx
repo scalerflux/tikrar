@@ -206,7 +206,7 @@ export default function OnboardingScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         <View style={styles.topBar}>
           <Image source={require('../assets/images/icon.png')} style={styles.logo} resizeMode="contain" />
           <Text style={styles.brand}>Tikrar 0.5</Text>
@@ -501,6 +501,9 @@ export default function OnboardingScreen() {
           </View>
         )}
 
+      </ScrollView>
+
+      <View style={styles.fixedNav}>
         <View style={styles.navRow}>
           {page > 0 ? (
             <PressableScale accessibilityRole="button" accessibilityLabel="Go to previous onboarding page" style={styles.navBtnGhost} onPress={back}><Ionicons name="chevron-back" size={18} color={Theme.colors.textPrimary} /><Text style={styles.navGhostText}>Back</Text></PressableScale>
@@ -513,7 +516,7 @@ export default function OnboardingScreen() {
         </View>
 
         <View style={styles.footer}><Text style={styles.footerText}>Tikrar.net • Info@Tikrar.net • Madinah</Text></View>
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
@@ -612,7 +615,8 @@ const styles = StyleSheet.create({
   priorBtnTextActive: { color: Theme.colors.bgDark },
   mushafBox: { flexDirection: 'row', gap: 8, backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.25)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.md, alignItems: 'flex-start' },
   mushafText: { flex: 1, color: Theme.colors.textSecondary, fontSize: 12, lineHeight: 18, fontWeight: '600' },
-  navRow: { flexDirection: 'row', gap: 12, marginTop: Theme.spacing.lg, alignItems: 'center' },
+  fixedNav: { backgroundColor: Theme.colors.bgDark, paddingHorizontal: Theme.spacing.md, paddingTop: Theme.spacing.sm, paddingBottom: Theme.spacing.md, borderTopWidth: 1, borderTopColor: Theme.colors.border },
+  navRow: { flexDirection: 'row', gap: 12, marginTop: 0, alignItems: 'center' },
   navBtnGhost: { flex: 1, flexDirection: 'row', gap: 6, paddingVertical: 12, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, alignItems: 'center', justifyContent: 'center' },
   navGhostText: { color: Theme.colors.textPrimary, fontWeight: '700' },
   navBtn: { flex: 1, flexDirection: 'row', gap: 6, backgroundColor: Theme.colors.accentGold, paddingVertical: 14, borderRadius: Theme.borderRadius.md, alignItems: 'center', justifyContent: 'center' },
