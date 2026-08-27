@@ -148,7 +148,7 @@ export default function ScheduleScreen() {
                   onChangeText={setSearchQuery}
                 />
                 {searchQuery ? (
-                  <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
                     <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
                   </TouchableOpacity>
                 ) : null}
@@ -248,8 +248,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16,185,129,0.25)',
   },
   rowMissed: {
-    borderColor: 'rgba(239,68,68,0.15)',
-    opacity: 0.9,
+    borderColor: Theme.colors.warningAmberBg,
+    opacity: 0.95,
   },
   dayCol: {
     width: 72,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statusBadgeMissed: {
-    color: '#EF4444',
+    color: Theme.colors.warningAmber,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5,

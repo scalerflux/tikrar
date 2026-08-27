@@ -24,18 +24,11 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
 }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.topRow}>
-        <View style={styles.dayBadge}>
-          <Text style={styles.dayBadgeText}>DAY {dayNumber} / 1206</Text>
-        </View>
-        <View style={styles.streakBadge}>
-          <Ionicons name="flame" size={16} color={Theme.colors.accentGold} />
-          <Text style={styles.streakText}>{streak} Day Streak</Text>
-        </View>
-      </View>
-
       <View style={styles.contentRow}>
         <View style={styles.mainInfo}>
+          <View style={styles.dayBadge}>
+            <Text style={styles.dayBadgeText}>DAY {dayNumber} / 1206</Text>
+          </View>
           <Text style={styles.surahTitle}>{surahName}</Text>
           <View style={styles.detailsRow}>
             <Text style={styles.detailText}>Page Face: <Text style={styles.detailHighlight}>{faceNumber || '—'}</Text></Text>
@@ -43,7 +36,11 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
             <Text style={styles.detailText}>Tour: <Text style={styles.detailHighlight}>#{tourNumber}</Text></Text>
           </View>
         </View>
-        <View style={styles.timeColumn}>
+        <View style={styles.rightColumn}>
+          <View style={styles.streakBadge}>
+            <Ionicons name="flame" size={16} color={Theme.colors.accentGold} />
+            <Text style={styles.streakText}>{streak} Day Streak</Text>
+          </View>
           <Text style={styles.timeRemainingLabel}>Time remaining</Text>
           <View style={styles.clockPill}>
             <Ionicons name="time-outline" size={14} color={timeLeftColor} />
@@ -64,15 +61,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Theme.colors.accentGoldBorder,
   },
-  topRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: Theme.spacing.md,
-  },
   contentRow: {
     flexDirection: 'row',
-    alignItems: 'flex-end',
+    alignItems: 'flex-start',
     gap: Theme.spacing.sm,
   },
   mainInfo: {
@@ -136,9 +127,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 0.3,
   },
-  timeColumn: {
+  rightColumn: {
     alignItems: 'flex-end',
-    gap: 6,
+    gap: 8,
     minWidth: 132,
   },
   clockPill: {

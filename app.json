@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tikrar",
     "slug": "tikrar-app",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tikrarapp",
@@ -16,6 +16,7 @@
         "backgroundColor": "#0A1628"
       },
       "package": "com.tikrar.app",
+      "versionCode": 3,
       "permissions": [
         "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",
@@ -47,6 +48,12 @@
         {
           "icon": "./assets/images/icon.png",
           "color": "#D4A843"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Allow Tikrar to add your Ustad recitation sessions to your calendar."
         }
       ],
       "expo-asset",

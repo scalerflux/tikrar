@@ -4,17 +4,28 @@ export const RECITERS = {
   // Level 1 - Tajwid based, monotone foundation
   suwayd: { id: 'suwayd', name: 'Dr. Ayman Suwayd (Tajwid Based)', level: 1, baseUrl: 'https://everyayah.com/data/Ayman_Sowaid_64kbps/' },
   minshawi: { id: 'minshawi', name: 'Sheikh Minshāwī', level: 1, baseUrl: 'https://everyayah.com/data/Minshawy_Murattal_128kbps/' },
-  hudayfi: { id: 'hudayfi', name: 'Sheikh Ḥuḏayfī', level: 1, baseUrl: 'https://everyayah.com/data/Hudhaify_128kbps/' },
-  husary: { id: 'husary', name: 'Sheikh Khālid Al-Ḥuṣarī', level: 1, baseUrl: 'https://everyayah.com/data/Husary_128kbps/' },
+  hudayfi: { id: 'hudayfi', name: 'Sheikh Ḥuḍayfī', level: 1, baseUrl: 'https://everyayah.com/data/Hudhaify_128kbps/' },
+  husary: { id: 'husary', name: 'Sheikh Maḥmūd Khālid Al-Ḥuṣarī', level: 1, baseUrl: 'https://everyayah.com/data/Husary_128kbps/' },
   // Level 2 - Slightly harder, repetitive tone
-  ayyub: { id: 'ayyub', name: 'Sheikh Muḥammad Ayyūb', level: 2, baseUrl: 'https://everyayah.com/data/Muhammad_Ayyub_128kbps/' },
-  talib: { id: 'talib', name: 'Sheikh Aḥmad At-Ṭālib', level: 2, baseUrl: 'https://everyayah.com/data/Ahmad_Talab_128kbps/' },
+  ayyub: { id: 'ayyub', name: 'Sheikh Muḥammad Ayyūb', level: 2, baseUrl: 'https://everyayah.com/data/Muhammad_Ayyoub_128kbps/' },
   jabir: { id: 'jabir', name: 'Sheikh ʿAlī Jābir', level: 2, baseUrl: 'https://everyayah.com/data/Ali_Jaber_64kbps/' },
-  shatiri: { id: 'shatiri', name: 'Sheikh Abū Bakr Shāṭirī', level: 2, baseUrl: 'https://everyayah.com/data/Abu_Bakr_Ash-Shatri_64kbps/' },
-  shuraym: { id: 'shuraym', name: 'Sheikh Shuraym', level: 2, baseUrl: 'https://everyayah.com/data/Saud_Al-Shuraim_128kbps/' },
+  shatiri: { id: 'shatiri', name: 'Sheikh Abū Bakr Shāṭirī', level: 2, baseUrl: 'https://everyayah.com/data/Abu_Bakr_Ash-Shaatree_64kbps/' },
+  shuraym: { id: 'shuraym', name: 'Sheikh Shuraym', level: 2, baseUrl: 'https://everyayah.com/data/Saood_ash-Shuraym_128kbps/' },
   sudays: { id: 'sudays', name: 'Sheikh Sudays', level: 2, baseUrl: 'https://everyayah.com/data/Abdurrahmaan_As-Sudais_192kbps/' },
   matrud: { id: 'matrud', name: 'Sheikh ʿAbdullāh Maṭrūd', level: 2, baseUrl: 'https://everyayah.com/data/Abdullah_Matroud_128kbps/' },
   qahtani: { id: 'qahtani', name: 'Sheikh Nāṣir Al-Qaḥṭānī', level: 2, baseUrl: 'https://everyayah.com/data/Nasser_Alqatami_128kbps/' },
+  // Level 3 - Repetitive but harder to imitate uniqueness
+  muaiqly: { id: 'muaiqly', name: 'Sheikh Māhir Al-Muʿayqilī', level: 3, baseUrl: 'https://everyayah.com/data/Maher_AlMuaiqly_64kbps/' },
+  kurdi: { id: 'kurdi', name: 'Sheikh Raʿd Al-Kurdī', level: 3, baseUrl: 'https://server6.mp3quran.net/kurdi/' },
+  yasser: { id: 'yasser', name: 'Sheikh Yāsir Ad-Dawsarī', level: 3, baseUrl: 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' },
+  afasi: { id: 'afasi', name: 'Sheikh Mishārī Al-ʿAfāsī', level: 3, baseUrl: 'https://everyayah.com/data/Alafasy_128kbps/' },
+  abbad: { id: 'abbad', name: 'Sheikh Fāris ʿAbbād', level: 3, baseUrl: 'https://everyayah.com/data/Fares_Abbad_64kbps/' },
+  ajmi: { id: 'ajmi', name: 'Sheikh Aḥmad Al-ʿAjmī', level: 3, baseUrl: 'https://everyayah.com/data/ahmed_ibn_ali_al_ajamy_128kbps/' },
+  // Level 4 - With meaning, hardest to imitate
+  luhaydan: { id: 'luhaydan', name: 'Sheikh Luḥaydān', level: 4, baseUrl: 'https://server8.mp3quran.net/lhdan/' },
+  badr: { id: 'badr', name: 'Sheikh Badr At-Turkī', level: 4, baseUrl: 'https://server10.mp3quran.net/bader/Rewayat-Hafs-A-n-Assem/' },
+  baleela: { id: 'baleela', name: 'Sheikh Bandar Balīlah', level: 4, baseUrl: 'https://server6.mp3quran.net/balilah/' },
+  juhani: { id: 'juhani', name: 'Sheikh ʿAbdullāh Al-Juhanī', level: 4, baseUrl: 'https://everyayah.com/data/Abdullaah_3awwaad_Al-Juhaynee_128kbps/' },
 } as const;
 
 export type ReciterId = keyof typeof RECITERS;
@@ -31,6 +42,11 @@ export function getReciterName(reciterId: string = DEFAULT_RECITER): string {
 
 export function getReciterLevel(reciterId: string = DEFAULT_RECITER): number {
   return RECITERS[reciterId as ReciterId]?.level || 1;
+}
+
+export function isPerSurahReciter(reciterId: string = DEFAULT_RECITER): boolean {
+  const base = RECITERS[reciterId as ReciterId]?.baseUrl || '';
+  return base.includes('mp3quran.net');
 }
 
 export interface AudioPlayState {
@@ -54,6 +70,10 @@ export class AudioService {
   }
 
   static getAyahAudioUrl(surahNumber: number, ayahNumber: number, reciterId: string = DEFAULT_RECITER): string {
+    if (isPerSurahReciter(reciterId)) {
+      const padSurah = surahNumber.toString().padStart(3, '0');
+      return `${getReciterBaseUrl(reciterId)}${padSurah}.mp3`;
+    }
     const padSurah = surahNumber.toString().padStart(3, '0');
     const padAyah = ayahNumber.toString().padStart(3, '0');
     return `${getReciterBaseUrl(reciterId)}${padSurah}${padAyah}.mp3`;

@@ -13,6 +13,10 @@ export interface BackupPayload {
   progress: DailyProgressRow[];
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 function normalizeProgressRow(value: unknown): DailyProgressRow | null {
   if (!value || typeof value !== 'object') return null;
   const row = value as Partial<DailyProgressRow>;
@@ -103,7 +107,12 @@ export class BackupService {
     } catch {
       throw new Error('Invalid JSON');
     }
-    if (!parsed || parsed.version !== 1 || !Array.isArray(parsed.progress)) {
+    if (
+      !parsed ||
+      parsed.version !== 1 ||
+      !Array.isArray(parsed.progress) ||
+      (parsed.settings !== undefined && !isRecord(parsed.settings))
+    ) {
       throw new Error('Invalid backup format');
     }
 
@@ -165,13 +174,58 @@ export class BackupService {
     if (Platform.OS === 'web') {
       throw new Error('Sharing not supported on web, copy the JSON instead');
     }
-    const legacy = FileSystem as any;
-    const cacheDir = legacy.cacheDirectory || legacy.documentDirectory;
-    if (!cacheDir) throw new Error('No cache directory');
-    const fileUri = `${cacheDir}${fileName}`;
-    await FileSystem.writeAsStringAsync(fileUri, json);
+
+    let fileUri: string | null = null;
+
+    // 1) Legacy FileSystem API (expo-file-system < 18 and legacy compat)
+    try {
+      const FS: any = FileSystem as any;
+      const dir: string | null = FS.cacheDirectory || FS.documentDirectory || null;
+      if (dir && typeof FS.writeAsStringAsync === 'function') {
+        fileUri = `${dir}${fileName}`;
+        await FS.writeAsStringAsync(fileUri, json);
+      }
+    } catch {}
+
+    // 2) New FileSystem API (expo-file-system >= 18: File + Paths)
+    if (!fileUri) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const FSNew: any = require('expo-file-system');
+        const Paths = FSNew.Paths;
+        const FileCtor = FSNew.File;
+        const base = Paths?.cache || Paths?.document || null;
+        if (base && FileCtor) {
+          const file = new FileCtor(base, fileName);
+          if (typeof file.write === 'function') {
+            await file.write(json);
+            fileUri = file.uri;
+          } else if (typeof file.writeAsStringAsync === 'function') {
+            await file.writeAsStringAsync(json);
+            fileUri = file.uri;
+          }
+        }
+      } catch {}
+    }
+
+    // 3) Explicit legacy import path
+    if (!fileUri) {
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const LegacyFS: any = require('expo-file-system/legacy');
+        const dir: string | null = LegacyFS.cacheDirectory || LegacyFS.documentDirectory || null;
+        if (dir && typeof LegacyFS.writeAsStringAsync === 'function') {
+          fileUri = `${dir}${fileName}`;
+          await LegacyFS.writeAsStringAsync(fileUri, json);
+        }
+      } catch {}
+    }
+
+    if (!fileUri) throw new Error('No cache directory — your device blocked file creation. Use Export Backup (JSON) and copy the text instead.');
     if (await Sharing.isAvailableAsync()) {
       await Sharing.shareAsync(fileUri, { mimeType: 'application/json', dialogTitle: 'Tikrar Backup' });
+    } else {
+      throw new Error(`Backup saved to ${fileUri} but sharing is not available on this device. Access it via Files app.`);
     }
   }
 
