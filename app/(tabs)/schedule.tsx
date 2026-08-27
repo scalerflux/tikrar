@@ -125,24 +125,6 @@ export default function ScheduleScreen() {
           </TouchableOpacity>
         </View>
 
-        <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
-
-        <View style={styles.searchBar}>
-          <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search by Day #, Surah, Face or Tour..."
-            placeholderTextColor={Theme.colors.textMuted}
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          {searchQuery ? (
-            <TouchableOpacity onPress={() => setSearchQuery('')}>
-              <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
-
         <FlatList
           ref={flatListRef}
           style={styles.list}
@@ -153,6 +135,26 @@ export default function ScheduleScreen() {
           initialNumToRender={20}
           maxToRenderPerBatch={30}
           windowSize={10}
+          ListHeaderComponent={
+            <>
+              <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
+              <View style={styles.searchBar}>
+                <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Search by Day #, Surah, Face or Tour..."
+                  placeholderTextColor={Theme.colors.textMuted}
+                  value={searchQuery}
+                  onChangeText={setSearchQuery}
+                />
+                {searchQuery ? (
+                  <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+                    <Ionicons name="close-circle" size={18} color={Theme.colors.textMuted} />
+                  </TouchableOpacity>
+                ) : null}
+              </View>
+            </>
+          }
           ListEmptyComponent={
             <View style={styles.emptyBox}>
               <Ionicons name="search-outline" size={28} color={Theme.colors.textMuted} />
@@ -246,8 +248,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(16,185,129,0.25)',
   },
   rowMissed: {
-    borderColor: 'rgba(239,68,68,0.15)',
-    opacity: 0.9,
+    borderColor: Theme.colors.warningAmberBg,
+    opacity: 0.95,
   },
   dayCol: {
     width: 72,
@@ -280,7 +282,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   statusBadgeMissed: {
-    color: '#EF4444',
+    color: Theme.colors.warningAmber,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0.5,

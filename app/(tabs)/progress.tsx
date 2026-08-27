@@ -52,7 +52,8 @@ export default function ProgressScreen() {
     const streak = calculateStreak(completed.map((c) => c.completedDate).filter((d) => d.length > 0));
     setStreakData(streak);
 
-    const savedUstad = await getUserSetting('ustadTeacher', '');
+    const savedUstadMode = await getUserSetting('ustadMode', 'none');
+    const savedUstad = savedUstadMode === 'custom' ? await getUserSetting('ustadTeacher', '') : '';
     setUstadName(savedUstad);
 
     const entries: LogEntry[] = [];
@@ -79,7 +80,15 @@ export default function ProgressScreen() {
 
       const setDate = await getUserSetting('ustadSetDate', localDateString());
       const today = localDateString();
-      const sessionDays = getUstadSessionDays(savedUstad);
+      const rawWeekdays = await getUserSetting('ustadCustomWeekdays', '[]');
+      let customWeekdays: number[] = [];
+      try {
+        const parsed = JSON.parse(rawWeekdays) as unknown;
+        if (Array.isArray(parsed)) {
+          customWeekdays = parsed.filter((day): day is number => Number.isInteger(day) && day >= 0 && day <= 6);
+        }
+      } catch {}
+      const sessionDays = getUstadSessionDays(savedUstad, customWeekdays);
       let cursor = setDate;
       if (daysBetweenDates(cursor, today) > 60) {
         const d = parseLocalDateString(today);

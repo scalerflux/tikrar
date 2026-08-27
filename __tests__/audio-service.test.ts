@@ -6,9 +6,12 @@ jest.mock('expo-audio', () => ({
 import { AudioService, getReciterBaseUrl, RECITERS } from '../services/audio-service';
 
 describe('reciter audio sources', () => {
-  it('generates a zero-padded EveryAyah ayah URL for every supported reciter', () => {
+  it('generates a zero-padded URL for every supported reciter (per-ayah or per-surah)', () => {
     for (const reciter of Object.values(RECITERS)) {
-      expect(AudioService.getAyahAudioUrl(2, 7, reciter.id)).toBe(`${reciter.baseUrl}002007.mp3`);
+      const expected = reciter.baseUrl.includes('mp3quran.net')
+        ? `${reciter.baseUrl}002.mp3`
+        : `${reciter.baseUrl}002007.mp3`;
+      expect(AudioService.getAyahAudioUrl(2, 7, reciter.id)).toBe(expected);
     }
   });
 

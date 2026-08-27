@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, AccessibilityInfo } from 'react-native';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { Theme } from '../../constants/theme';
@@ -12,6 +13,8 @@ interface PhaseCardProps {
   isCompleted: boolean;
   onToggleComplete: () => void;
   children?: React.ReactNode;
+  locked?: boolean;
+  lockedHint?: string;
 }
 
 export const PhaseCard: React.FC<PhaseCardProps> = ({
@@ -22,11 +25,39 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
   isCompleted,
   onToggleComplete,
   children,
+  locked = false,
+  lockedHint,
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isReduceMotionEnabled, setIsReduceMotionEnabled] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
+      if (mounted) setIsReduceMotionEnabled(enabled);
+    }).catch(() => {});
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setIsReduceMotionEnabled);
+    return () => {
+      mounted = false;
+      subscription.remove();
+    };
+  }, []);
+
+  const entering = isReduceMotionEnabled ? undefined : FadeInDown.delay(phaseNumber * 60).springify();
+
+  if (locked) {
+    return (
+      <Animated.View entering={entering} style={[styles.card, styles.lockedCard]}>
+        <View style={styles.lockedRow}>
+          <Ionicons name="lock-closed-outline" size={14} color={Theme.colors.textMuted} />
+          <Text style={styles.lockedText}>{lockedHint || `${title} unlocks soon`}</Text>
+        </View>
+      </Animated.View>
+    );
+  }
 
   return (
-    <View style={[styles.card, isCompleted && styles.completedCard]}>
+    <Animated.View entering={entering} style={[styles.card, isCompleted && styles.completedCard]}>
       <TouchableOpacity
         style={styles.header}
         onPress={() => setIsExpanded(!isExpanded)}
@@ -74,7 +105,7 @@ export const PhaseCard: React.FC<PhaseCardProps> = ({
           {children}
         </View>
       )}
-    </View>
+    </Animated.View>
   );
 };
 
@@ -141,5 +172,23 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: Theme.spacing.md,
     paddingBottom: Theme.spacing.md,
+  },
+  lockedCard: {
+    height: 36,
+    justifyContent: 'center',
+    paddingHorizontal: Theme.spacing.md,
+    backgroundColor: Theme.colors.surface1,
+    borderColor: Theme.colors.border,
+    opacity: 0.9,
+  },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  lockedText: {
+    color: Theme.colors.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
   },
 });

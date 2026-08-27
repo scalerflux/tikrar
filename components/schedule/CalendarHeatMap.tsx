@@ -11,8 +11,10 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
 
   const totalDays = 1206;
-  const colsPerRow = 52;
+  const colsPerRow = 26;
   const rows = Math.ceil(totalDays / colsPerRow);
+  const [expanded, setExpanded] = useState(false);
+  const visibleRows = expanded ? rows : Math.min(8, rows);
   const completedSet = useMemo(() => new Set(completedDays), [completedDays]);
 
   const getDayColor = (dayNum: number) => {
@@ -57,33 +59,39 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
           </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.grid}>
-          {Array.from({ length: rows }).map((_, rowIndex) => (
-            <View key={rowIndex} style={styles.row}>
-              {Array.from({ length: colsPerRow }).map((_, colIndex) => {
-                const dayNum = rowIndex * colsPerRow + colIndex + 1;
-                if (dayNum > totalDays) return null;
+      <View style={styles.grid}>
+        {Array.from({ length: visibleRows }).map((_, rowIndex) => (
+          <View key={rowIndex} style={styles.row}>
+            {Array.from({ length: colsPerRow }).map((_, colIndex) => {
+              const dayNum = rowIndex * colsPerRow + colIndex + 1;
+              if (dayNum > totalDays) return null;
 
-                const isSelected = selectedDay === dayNum;
+              const isSelected = selectedDay === dayNum;
 
-                return (
-                  <TouchableOpacity
-                    key={dayNum}
-                    style={[
-                      styles.cell,
-                      { backgroundColor: getDayColor(dayNum) },
-                      isSelected && styles.selectedCell,
-                    ]}
-                    onPress={() => setSelectedDay(dayNum)}
-                    activeOpacity={0.7}
-                  />
-                );
-              })}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+              return (
+                <TouchableOpacity
+                  key={dayNum}
+                  style={[
+                    styles.cell,
+                    { backgroundColor: getDayColor(dayNum) },
+                    isSelected && styles.selectedCell,
+                  ]}
+                  onPress={() => setSelectedDay(dayNum)}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 4, bottom: 4, left: 4, right: 4 }}
+                />
+              );
+            })}
+          </View>
+        ))}
+      </View>
+
+      {rows > 8 && (
+        <TouchableOpacity style={styles.expandBtn} onPress={() => setExpanded(!expanded)} activeOpacity={0.7}>
+          <Text style={styles.expandText}>{expanded ? 'Show less' : `Show all ${rows} rows`}</Text>
+          <Text style={styles.expandIcon}>{expanded ? '▲' : '▼'}</Text>
+        </TouchableOpacity>
+      )}
 
       {selectedDay !== null && (
         <View style={styles.infoBox}>
@@ -96,7 +104,7 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   );
 };
 
-const CELL_SIZE = 10;
+const CELL_SIZE = 8;
 const CELL_GAP = 2;
 
 const styles = StyleSheet.create({
@@ -123,7 +131,7 @@ const styles = StyleSheet.create({
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 8,
+    gap: 12,
     marginBottom: Theme.spacing.sm,
   },
   legendItem: {
@@ -140,8 +148,22 @@ const styles = StyleSheet.create({
     color: Theme.colors.textSecondary,
     fontSize: 9,
   },
-  scrollContent: {
-    paddingRight: Theme.spacing.sm,
+  expandBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    marginTop: Theme.spacing.sm,
+    paddingVertical: 6,
+  },
+  expandText: {
+    color: Theme.colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  expandIcon: {
+    color: Theme.colors.textMuted,
+    fontSize: 10,
   },
   grid: {
     flexDirection: 'column',

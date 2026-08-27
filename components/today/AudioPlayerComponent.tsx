@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, ScrollView
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import { Theme } from '../../constants/theme';
-import { AudioService, getReciterName } from '../../services/audio-service';
+import { AudioPlayState, AudioService, getReciterName, isPerSurahReciter } from '../../services/audio-service';
 import { SURAH_LIST } from '../../data/surah-metadata';
 import { getAyahListForFace, getAyahRangeForFace } from '../../utils/schedule-calculator';
 import { TranslationService, AyahTranslation } from '../../services/translation-service';
@@ -72,8 +72,24 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
 
   const urls = useMemo(() => {
     if (ayahList.length === 0) return null;
-    return ayahList.map(item => AudioService.getAyahAudioUrl(item.surah, item.ayah, reciterId));
+    const raw = ayahList.map(item => AudioService.getAyahAudioUrl(item.surah, item.ayah, reciterId));
+    if (isPerSurahReciter(reciterId)) {
+      return [...new Set(raw)];
+    }
+    return raw;
   }, [ayahList, reciterId]);
+
+  // Some supported sources provide one complete-surah file rather than one
+  // file per ayah. Keep the translation list mapped to the de-duplicated
+  // playback queue so tapping any verse still starts the correct surah.
+  const ayahUrlIndices = useMemo(() => {
+    if (!urls || ayahList.length === 0) return [];
+    return ayahList.map((item, index) => {
+      if (!isPerSurahReciter(reciterId)) return index;
+      const url = AudioService.getAyahAudioUrl(item.surah, item.ayah, reciterId);
+      return urls.indexOf(url);
+    });
+  }, [ayahList, reciterId, urls]);
 
   const rangeLabel = useMemo(() => {
     if (!range) return null;
@@ -101,6 +117,23 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
     };
   }, [faceNumber]);
 
+  const handlePlaybackStatus = useCallback((status: AudioPlayState) => {
+    setIsPlaying(status.isPlaying);
+    if (status.ayahIndex !== undefined) {
+      const translationIndex = isPerSurahReciter(reciterId)
+        ? ayahUrlIndices.findIndex((urlIndex) => urlIndex === status.ayahIndex)
+        : status.ayahIndex;
+      setCurrentAyahIndex(translationIndex >= 0 ? translationIndex : status.ayahIndex);
+    }
+    if (status.playCount > 0) {
+      setListenCount((prev) => {
+        const next = prev + 1;
+        if (next >= 3 && onCompleted3Times) onCompleted3Times();
+        return next;
+      });
+    }
+  }, [ayahUrlIndices, onCompleted3Times, reciterId]);
+
   const handlePlayPause = async () => {
     if (isPlaying) {
       await AudioService.pauseAudio();
@@ -108,42 +141,17 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
     } else {
       setIsLoading(true);
       if (urls && urls.length > 0) {
-        let startIndex = currentAyahIndex;
+        let startIndex = ayahUrlIndices[currentAyahIndex] ?? currentAyahIndex;
         if (AudioService.isSequenceFinished()) {
           startIndex = 0;
           setCurrentAyahIndex(0);
         }
-        await AudioService.playAyahSequence(urls, startIndex, (status) => {
-          setIsPlaying(status.isPlaying);
-          if (status.ayahIndex !== undefined) {
-            setCurrentAyahIndex(status.ayahIndex);
-          }
-          if (status.playCount > 0) {
-            setListenCount(prev => {
-              const next = prev + 1;
-              if (next >= 3 && onCompleted3Times) {
-                onCompleted3Times();
-              }
-              return next;
-            });
-          }
-        });
+        await AudioService.playAyahSequence(urls, startIndex, handlePlaybackStatus);
       } else {
         const surahNumber = resolveSurahNumber(surahName);
         if (surahNumber > 0) {
           const audioUrl = AudioService.getSurahAudioUrl(surahNumber);
-          await AudioService.playAudio(audioUrl, (status) => {
-            setIsPlaying(status.isPlaying);
-            if (status.playCount > 0) {
-              setListenCount(prev => {
-                const next = prev + 1;
-                if (next >= 3 && onCompleted3Times) {
-                  onCompleted3Times();
-                }
-                return next;
-              });
-            }
-          });
+          await AudioService.playAudio(audioUrl, handlePlaybackStatus);
         }
       }
       setIsLoading(false);
@@ -153,25 +161,12 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
   const handleJumpToAyah = async (index: number) => {
     setCurrentAyahIndex(index);
     if (urls && urls.length > 0) {
+      const playbackIndex = ayahUrlIndices[index] ?? index;
       if (isPlaying) {
-        await AudioService.jumpToAyah(index);
+        await AudioService.jumpToAyah(playbackIndex);
       } else {
         setIsLoading(true);
-        await AudioService.playAyahSequence(urls, index, (status) => {
-          setIsPlaying(status.isPlaying);
-          if (status.ayahIndex !== undefined) {
-            setCurrentAyahIndex(status.ayahIndex);
-          }
-          if (status.playCount > 0) {
-            setListenCount(prev => {
-              const next = prev + 1;
-              if (next >= 3 && onCompleted3Times) {
-                onCompleted3Times();
-              }
-              return next;
-            });
-          }
-        });
+        await AudioService.playAyahSequence(urls, playbackIndex, handlePlaybackStatus);
         setIsLoading(false);
       }
     }
@@ -240,7 +235,9 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
       {urls && urls.length > 1 && (
         <View style={styles.ayahProgressRow}>
           <Text style={styles.progressLabel}>
-            Playing Ayah {currentAyahIndex + 1} of {urls.length}
+            {isPerSurahReciter(reciterId)
+              ? `Playing surah audio (${urls.length} files)`
+              : `Playing Ayah ${currentAyahIndex + 1} of ${ayahList.length}`}
           </Text>
           <TouchableOpacity
             style={styles.toggleTranslationBtn}

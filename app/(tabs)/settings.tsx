@@ -1,15 +1,16 @@
 import React, { useCallback, useState } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, TextInput, Switch } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { Theme } from '../../constants/theme';
 import { getUserSetting, setUserSetting } from '../../database/db';
 import { isValidLocalDateString, localDateString } from '../../utils/schedule-calculator';
 import { NotificationService } from '../../services/notification-service';
-import { getDeviceUtcOffsetHour } from '../../utils/timezone';
-import { RECITERS, ReciterId } from '../../services/audio-service';
+import { RECITERS, ReciterId, AudioService } from '../../services/audio-service';
 import { BackupService } from '../../services/backup-service';
-import { getMarkazUstad, MARKAZ_USTADS, getUstadSessionDays } from '../../services/ustad-session-service';
+import { getUstadSessionDays } from '../../services/ustad-session-service';
+import { CalendarService } from '../../services/calendar-service';
+import { Toast } from '../../components/ui/Toast';
 import { Ionicons } from '@expo/vector-icons';
 
 const COUNTRIES = [
@@ -32,27 +33,11 @@ function parseTimeToMinutes(t: string): number | null {
   if (ap === 'am' && h === 12) h = 0;
   return h * 60 + min;
 }
-function formatMinutes(mins: number): string {
-  mins = ((mins % 1440) + 1440) % 1440;
-  let h = Math.floor(mins / 60);
-  const m = mins % 60;
-  const ap = h >= 12 ? 'pm' : 'am';
-  let dh = h % 12;
-  if (dh === 0) dh = 12;
-  return m === 0 ? `${dh} ${ap}` : `${dh}:${String(m).padStart(2, '0')} ${ap}`;
-}
-function convertMakkahTimeStr(timeStr: string, targetOffset: number): string {
-  const diff = targetOffset - 3;
-  return timeStr.replace(/(\d{1,2}(?::\d{2})?\s*(?:am|pm))/gi, (match) => {
-    const mins = parseTimeToMinutes(match);
-    if (mins === null) return match;
-    return formatMinutes(mins + diff * 60);
-  });
-}
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [startDate, setStartDate] = useState('');
   const [fajrTime, setFajrTime] = useState('05:00');
   const [reciterId, setReciterId] = useState<ReciterId>('qahtani');
@@ -60,19 +45,45 @@ export default function SettingsScreen() {
   const [notifTime, setNotifTime] = useState('06:00');
   const [importText, setImportText] = useState('');
   const [backupStatus, setBackupStatus] = useState('');
-  const [ustadMode, setUstadMode] = useState<'markaz' | 'custom' | 'none'>('none');
-  const [markazTeacher, setMarkazTeacher] = useState(MARKAZ_USTADS[0].name);
+  const [ustadMode, setUstadMode] = useState<'custom' | 'none'>('none');
   const [customName, setCustomName] = useState('');
   const [customTiming, setCustomTiming] = useState('');
   const [customWeekdays, setCustomWeekdays] = useState<number[]>([]);
   const [customHour, setCustomHour] = useState('5');
   const [customMinute, setCustomMinute] = useState('00');
   const [customAmPm, setCustomAmPm] = useState<'am' | 'pm'>('pm');
+  const [addToCalendar, setAddToCalendar] = useState(false);
   const [countryCode, setCountryCode] = useState('SA');
   const [countrySearch, setCountrySearch] = useState('');
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [sessionNotifEnabled, setSessionNotifEnabled] = useState(false);
   const [sessionNotifTime, setSessionNotifTime] = useState('');
+  const [playingReciter, setPlayingReciter] = useState<ReciterId | null>(null);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const hideToast = useCallback(() => setToastMessage(''), []);
+
+  React.useEffect(() => {
+    return () => {
+      AudioService.stopAudio();
+    };
+  }, []);
+
+  const previewReciter = async (id: ReciterId) => {
+    if (playingReciter === id) {
+      await AudioService.stopAudio();
+      setPlayingReciter(null);
+      return;
+    }
+    setPlayingReciter(id);
+    const url = AudioService.getAyahAudioUrl(1, 1, id);
+    const player = await AudioService.playAudio(url, (status) => {
+      if (status.playCount > 0) {
+        setPlayingReciter((current) => current === id ? null : current);
+      }
+    });
+    if (!player) setPlayingReciter(null);
+  };
 
   const loadSettings = async () => {
     const savedDate = await getUserSetting('startDate', localDateString());
@@ -83,15 +94,26 @@ export default function SettingsScreen() {
     const savedReciter = savedReciterRaw === 'qatami' ? 'qahtani' : savedReciterRaw;
     if (savedReciter in RECITERS) setReciterId(savedReciter as ReciterId);
 
-    const savedMode = await getUserSetting('ustadMode', 'none');
-    if (savedMode === 'custom' || savedMode === 'markaz' || savedMode === 'none') setUstadMode(savedMode);
-    const savedTeacher = await getUserSetting('ustadTeacher', MARKAZ_USTADS[0].name);
-    const savedTiming = await getUserSetting('ustadTiming', MARKAZ_USTADS[0].time);
+    const savedModeRaw = await getUserSetting('ustadMode', 'none');
+    // Markaz Al Fawaid option was removed. Map any legacy markaz selection to none.
+    setUstadMode(savedModeRaw === 'custom' ? 'custom' : 'none');
+    const savedTeacher = await getUserSetting('ustadTeacher', '');
+    const savedTiming = await getUserSetting('ustadTiming', '');
     const savedCountry = await getUserSetting('countryCode', 'SA');
     if (COUNTRIES.some((c) => c.code === savedCountry)) setCountryCode(savedCountry);
-    if (savedMode === 'markaz') {
-      if (getMarkazUstad(savedTeacher)) setMarkazTeacher(savedTeacher);
-    } else if (savedMode === 'custom') {
+    try {
+      const rawDays = await getUserSetting('ustadCustomWeekdays', '[]');
+      const parsedDays = JSON.parse(rawDays) as unknown;
+      setCustomWeekdays(Array.isArray(parsedDays)
+        ? parsedDays.filter((day): day is number => Number.isInteger(day) && day >= 0 && day <= 6)
+        : []);
+      const cal = await getUserSetting('addToCalendar', 'false');
+      setAddToCalendar(cal === 'true');
+    } catch {
+      setCustomWeekdays([]);
+      setAddToCalendar(false);
+    }
+    if (savedModeRaw === 'custom') {
       setCustomName(savedTeacher);
       setCustomTiming(savedTiming);
       const parsed = parseTimeToMinutes(savedTiming);
@@ -103,20 +125,12 @@ export default function SettingsScreen() {
         if (h12 === 0) h12 = 12;
         setCustomHour(String(h12));
         const minuteStr = String(m).padStart(2, '0');
-        setCustomMinute(['00', '15', '30', '45'].includes(minuteStr) ? minuteStr : minuteStr);
+        setCustomMinute(['00', '15', '30', '45'].includes(minuteStr) ? minuteStr : '00');
         setCustomAmPm(ap);
       }
-      try {
-        const rawDays = await getUserSetting('ustadCustomWeekdays', '[]');
-        const parsedDays = JSON.parse(rawDays) as number[];
-        if (Array.isArray(parsedDays)) setCustomWeekdays(parsedDays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6));
-      } catch {}
     } else {
-      try {
-        const rawDays = await getUserSetting('ustadCustomWeekdays', '[]');
-        const parsedDays = JSON.parse(rawDays) as number[];
-        if (Array.isArray(parsedDays)) setCustomWeekdays(parsedDays.filter((d) => Number.isInteger(d) && d >= 0 && d <= 6));
-      } catch {}
+      setCustomName('');
+      setCustomTiming('');
     }
 
     const notifSettings = await NotificationService.getNotificationSettings();
@@ -145,37 +159,15 @@ export default function SettingsScreen() {
     await setUserSetting('reciter', id);
   };
 
-  const handleSelectUstadMarkaz = async (name: string) => {
-    setUstadMode('markaz');
-    setMarkazTeacher(name);
-    const t = getMarkazUstad(name);
-    await setUserSetting('ustadMode', 'markaz');
-    await setUserSetting('ustadTeacher', name);
-    if (t) await setUserSetting('ustadTiming', t.time);
-    const existing = await getUserSetting('ustadSetDate', '');
-    if (!existing) await setUserSetting('ustadSetDate', localDateString());
-    if (sessionNotifEnabled && t) {
-      await NotificationService.scheduleSessionReminderMakkah(t.time, t.sessionDays);
-      const s = await NotificationService.getSessionReminderSettings();
-      setSessionNotifTime(s.time);
-    }
-  };
-
   const handleSelectCountry = async (code: string) => {
     setCountryCode(code);
     await setUserSetting('countryCode', code);
     const cc = COUNTRIES.find((c) => c.code === code);
     if (cc) await setUserSetting('countryName', cc.name);
     if (sessionNotifEnabled) {
-      const timing = ustadMode === 'markaz'
-        ? getMarkazUstad(markazTeacher)?.time || ''
-        : customTiming.trim();
-      const teacher = ustadMode === 'markaz' ? markazTeacher : customName.trim();
-      if (ustadMode === 'markaz') {
-        await NotificationService.scheduleSessionReminderMakkah(timing, getMarkazUstad(teacher)?.sessionDays ?? []);
-        const s = await NotificationService.getSessionReminderSettings();
-        setSessionNotifTime(s.time);
-      } else if (timing) {
+      const timing = customTiming.trim();
+      const teacher = customName.trim();
+      if (timing) {
         await NotificationService.scheduleSessionReminder(timing, getUstadSessionDays(teacher, customWeekdays));
       }
     }
@@ -196,6 +188,7 @@ export default function SettingsScreen() {
     await setUserSetting('ustadTeacher', customName.trim());
     await setUserSetting('ustadTiming', composedTiming);
     await setUserSetting('ustadCustomWeekdays', JSON.stringify(customWeekdays));
+    await setUserSetting('addToCalendar', String(addToCalendar));
     setCustomTiming(composedTiming);
     const existing = await getUserSetting('ustadSetDate', '');
     if (!existing) await setUserSetting('ustadSetDate', localDateString());
@@ -206,13 +199,24 @@ export default function SettingsScreen() {
         setSessionNotifTime(s.time);
       }
     }
-    Alert.alert('Saved', `Ustad set to ${customName.trim()} • ${composedTiming} • ${customWeekdays.map((d) => WEEKDAY_LABELS[d]).join(', ')}`);
+    let calendarNote = '';
+    if (addToCalendar) {
+      const calRes = await CalendarService.syncUstadSessions({
+        teacherName: customName.trim(),
+        time12h: composedTiming,
+        weekdays: customWeekdays,
+      });
+      calendarNote = calRes.ok
+        ? ` • ${calRes.created} session${calRes.created === 1 ? '' : 's'} added to your calendar`
+        : ' • Calendar needs permission, allow it when prompted';
+    } else {
+      await CalendarService.removeUstadSessions();
+    }
+    setToastMessage(`Ustad saved • ${composedTiming} • ${customWeekdays.map((d) => WEEKDAY_LABELS[d]).join(', ')}${calendarNote}`);
   };
 
   const handleToggleSessionReminder = async (value: boolean) => {
-    const timing = ustadMode === 'markaz'
-      ? getMarkazUstad(markazTeacher)?.time || ''
-      : customTiming.trim();
+    const timing = customTiming.trim();
     if (value && !timing) {
       Alert.alert('No timing', 'Set your ustad timing first, then enable the reminder.');
       setSessionNotifEnabled(false);
@@ -225,13 +229,7 @@ export default function SettingsScreen() {
     }
     setSessionNotifEnabled(value);
     if (value) {
-      const teacher = ustadMode === 'markaz' ? markazTeacher : customName.trim();
-      let ok = false;
-      if (ustadMode === 'markaz') {
-        ok = await NotificationService.scheduleSessionReminderMakkah(timing, getMarkazUstad(teacher)?.sessionDays ?? []);
-      } else {
-        ok = await NotificationService.scheduleSessionReminder(timing, getUstadSessionDays(teacher, customWeekdays));
-      }
+      const ok = await NotificationService.scheduleSessionReminder(timing, getUstadSessionDays(customName.trim(), customWeekdays));
       if (ok) {
         const s = await NotificationService.getSessionReminderSettings();
         setSessionNotifTime(s.time);
@@ -501,23 +499,22 @@ export default function SettingsScreen() {
             </View>
           )}
 
-          <TouchableOpacity style={[styles.ustadCard, ustadMode === 'markaz' && styles.ustadCardActive]} onPress={() => handleSelectUstadMarkaz(markazTeacher)} activeOpacity={0.7}>
-            <View style={styles.ustadHeader}><Text style={styles.ustadTitle}>Markaz Al Fawaid</Text>{ustadMode === 'markaz' && <Ionicons name="checkmark-circle" size={18} color={Theme.colors.accentGold} />}</View>
-            {MARKAZ_USTADS.map((t) => {
-              const converted = convertMakkahTimeStr(t.time, getDeviceUtcOffsetHour()).replace('Makkah time', '').trim();
-              return (
-                <TouchableOpacity key={t.name} style={[styles.teacherRow, markazTeacher === t.name && ustadMode === 'markaz' && styles.teacherRowActive]} onPress={() => handleSelectUstadMarkaz(t.name)}>
-                  <Ionicons name={markazTeacher === t.name && ustadMode === 'markaz' ? 'radio-button-on' : 'radio-button-off'} size={16} color={Theme.colors.accentGold} />
-                  <View style={{ flex: 1 }}><Text style={styles.teacherName}>{t.name}</Text><Text style={styles.teacherTime}>{converted}</Text></View>
-                </TouchableOpacity>
-              );
-            })}
-          </TouchableOpacity>
-
-          <TouchableOpacity style={[styles.ustadCard, ustadMode === 'custom' && styles.ustadCardActive]} onPress={() => setUstadMode('custom')} activeOpacity={0.7}>
-            <View style={styles.ustadHeader}><Text style={styles.ustadTitle}>My Own Teacher</Text>{ustadMode === 'custom' && <Ionicons name="checkmark-circle" size={18} color={Theme.colors.accentGold} />}</View>
-            <TextInput style={styles.dateInput} value={customName} onChangeText={(v) => { setCustomName(v); setUstadMode('custom'); }} placeholder="Teacher name" placeholderTextColor={Theme.colors.textMuted} />
-            <Text style={styles.pickerLabel}>Session days</Text>
+          <TouchableOpacity style={[styles.ustadCardEnhanced, ustadMode === 'custom' && styles.ustadCardActive]} onPress={() => setUstadMode('custom')} activeOpacity={0.7}>
+            <View style={styles.cardIconBadge}><Ionicons name="person-add-outline" size={20} color={Theme.colors.accentGold} /></View>
+            <View style={styles.ustadHeaderEnhanced}>
+              <Text style={styles.ustadTitleEnhanced}>Add your Ustad</Text>
+              {ustadMode === 'custom' && <Ionicons name="checkmark-circle" size={22} color={Theme.colors.accentGold} />}
+            </View>
+            <Text style={styles.ustadSubEnhanced}>Your personal teacher for recitation. Pick the session days, set the time, and optionally add them to your calendar.</Text>
+            <View style={styles.fieldLabelRow}>
+              <Ionicons name="person-outline" size={13} color={Theme.colors.accentGold} />
+              <Text style={styles.fieldLabel}>Teacher name</Text>
+            </View>
+            <TextInput style={styles.dateInput} value={customName} onChangeText={(v) => { setCustomName(v); setUstadMode('custom'); }} placeholder="e.g. Sheikh Ahmad" placeholderTextColor={Theme.colors.textMuted} />
+            <View style={styles.fieldLabelRow}>
+              <Ionicons name="calendar-number-outline" size={13} color={Theme.colors.accentGold} />
+              <Text style={styles.fieldLabel}>Session days</Text>
+            </View>
             <View style={styles.weekdayRow}>
               {WEEKDAY_LABELS.map((lbl, idx) => {
                 const selected = customWeekdays.includes(idx);
@@ -535,30 +532,47 @@ export default function SettingsScreen() {
                 );
               })}
             </View>
-            <Text style={styles.pickerLabel}>Start time (your local time)</Text>
-            <View style={styles.timePickerRow}>
-              {['1','2','3','4','5','6','7','8','9','10','11','12'].map((h) => (
-                <TouchableOpacity key={h} style={[styles.timeChip, customHour === h && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomHour(h); }}>
-                  <Text style={[styles.timeChipText, customHour === h && styles.timeChipTextActive]}>{h}</Text>
-                </TouchableOpacity>
-              ))}
+            <View style={styles.fieldLabelRow}>
+              <Ionicons name="time-outline" size={13} color={Theme.colors.accentGold} />
+              <Text style={styles.fieldLabel}>Start time</Text>
             </View>
-            <View style={styles.timePickerRow}>
-              {['00','15','30','45'].map((m) => (
-                <TouchableOpacity key={m} style={[styles.timeChip, customMinute === m && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomMinute(m); }}>
-                  <Text style={[styles.timeChipText, customMinute === m && styles.timeChipTextActive]}>:{m}</Text>
-                </TouchableOpacity>
-              ))}
-              <View style={styles.timeAmPmGroup}>
-                {(['am','pm'] as const).map((ap) => (
-                  <TouchableOpacity key={ap} style={[styles.timeChip, customAmPm === ap && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomAmPm(ap); }}>
-                    <Text style={[styles.timeChipText, customAmPm === ap && styles.timeChipTextActive]}>{ap.toUpperCase()}</Text>
+            <View style={styles.pickerGroup}>
+              <View style={styles.timePickerRow}>
+                {['1','2','3','4','5','6','7','8','9','10','11','12'].map((h) => (
+                  <TouchableOpacity key={h} style={[styles.timeChip, customHour === h && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomHour(h); }}>
+                    <Text style={[styles.timeChipText, customHour === h && styles.timeChipTextActive]}>{h}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
+              <View style={styles.timePickerRow}>
+                {['00','15','30','45'].map((m) => (
+                  <TouchableOpacity key={m} style={[styles.timeChip, customMinute === m && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomMinute(m); }}>
+                    <Text style={[styles.timeChipText, customMinute === m && styles.timeChipTextActive]}>:{m}</Text>
+                  </TouchableOpacity>
+                ))}
+                <View style={styles.timeAmPmGroup}>
+                  {(['am','pm'] as const).map((ap) => (
+                    <TouchableOpacity key={ap} style={[styles.timeChip, customAmPm === ap && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomAmPm(ap); }}>
+                      <Text style={[styles.timeChipText, customAmPm === ap && styles.timeChipTextActive]}>{ap.toUpperCase()}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             </View>
-            <Text style={styles.pickerHint}>Saves as {customHour}:{customMinute} {customAmPm} • {customWeekdays.length ? customWeekdays.map((d) => WEEKDAY_LABELS[d]).join(', ') : 'no days selected'}</Text>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCustomUstad}><Text style={styles.saveBtnText}>Save Custom</Text></TouchableOpacity>
+            <View style={styles.summaryStrip}>
+              <Ionicons name="sparkles-outline" size={14} color={Theme.colors.accentGold} />
+              <Text style={styles.summaryText}>
+                {customName.trim() || 'Your Ustad'} • {customHour}:{customMinute} {customAmPm} • {customWeekdays.length ? customWeekdays.map((d) => WEEKDAY_LABELS[d]).join(', ') : 'pick days'}
+              </Text>
+            </View>
+            <View style={styles.calendarRow}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.calendarLabel}>Add sessions to calendar</Text>
+                <Text style={styles.calendarHint}>Creates recurring weekly events so you never miss a session.</Text>
+              </View>
+              <Switch value={addToCalendar} onValueChange={setAddToCalendar} trackColor={{ false: Theme.colors.border, true: Theme.colors.accentGold }} thumbColor={addToCalendar ? '#FFF' : '#888'} />
+            </View>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCustomUstad}><Text style={styles.saveBtnText}>Save Ustad</Text></TouchableOpacity>
           </TouchableOpacity>
 
           <View style={styles.sessionNotifRow}>
@@ -585,23 +599,27 @@ export default function SettingsScreen() {
             <Ionicons name="headset-outline" size={20} color={Theme.colors.accentGold} />
             <Text style={styles.sectionTitle}>Default Reciter</Text>
           </View>
-          <Text style={styles.sectionSubtitle}>Level 1 first for tajwid and monotone foundation. Move to Level 2 when you can recite similarly. Beauty of voice comes after correctness.</Text>
+          <Text style={styles.sectionSubtitle}>Level 1 first for tajwid and monotone foundation. Move up when you can recite similarly. Beauty of voice comes after correctness.</Text>
           <View style={styles.reciterList}>
-            {[1, 2].map((lvl) => (
+            {[1, 2, 3, 4].map((lvl) => (
               <View key={lvl}>
-                <Text style={styles.reciterLevelLabel}>Level {lvl} {lvl === 1 ? '• Tajwid foundation' : '• Slightly harder'}</Text>
+                <Text style={styles.reciterLevelLabel}>Level {lvl} {lvl === 1 ? '• Tajwid foundation' : lvl === 2 ? '• Repetitive tone' : lvl === 3 ? '• Advanced uniqueness' : '• With meaning, hardest'}</Text>
                 {(Object.values(RECITERS) as Array<{ id: ReciterId; name: string; level: number }>).filter((r) => r.level === lvl).map((r) => {
                   const selected = r.id === reciterId;
+                  const isPlaying = playingReciter === r.id;
                   return (
-                    <TouchableOpacity
-                      key={r.id}
-                      style={[styles.reciterBox, selected && styles.reciterBoxSelected]}
-                      onPress={() => handleSelectReciter(r.id)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={[styles.reciterName, selected && styles.reciterNameSelected]}>{r.name}</Text>
-                      {selected ? <Ionicons name="checkmark-circle" size={20} color={Theme.colors.accentGold} /> : <Ionicons name="ellipse-outline" size={20} color={Theme.colors.textMuted} />}
-                    </TouchableOpacity>
+                    <View key={r.id} style={[styles.reciterBox, selected && styles.reciterBoxSelected]}>
+                      <TouchableOpacity style={{ flex: 1 }} onPress={() => handleSelectReciter(r.id)} activeOpacity={0.7}>
+                        <Text style={[styles.reciterName, selected && styles.reciterNameSelected]}>{r.name}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.reciterPlayBtn, isPlaying && styles.reciterPlayBtnActive]}
+                        onPress={() => previewReciter(r.id)}
+                      >
+                        <Ionicons name={isPlaying ? 'pause' : 'play'} size={14} color={isPlaying ? Theme.colors.bgDark : Theme.colors.accentGold} />
+                      </TouchableOpacity>
+                      <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={selected ? Theme.colors.accentGold : Theme.colors.textMuted} />
+                    </View>
                   );
                 })}
               </View>
@@ -674,7 +692,20 @@ export default function SettingsScreen() {
             <Text style={styles.bulletText}>Complete revision of the full Quran every 6 days.</Text>
           </View>
         </View>
+
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="refresh-outline" size={20} color={Theme.colors.accentGold} />
+            <Text style={styles.sectionTitle}>Onboarding</Text>
+          </View>
+          <Text style={styles.sectionSubtitle}>Go through the introduction, reciter choice and setup again.</Text>
+          <TouchableOpacity style={styles.backupBtn} onPress={() => router.push('/onboarding')} activeOpacity={0.7}>
+            <Ionicons name="play-circle-outline" size={18} color={Theme.colors.bgDark} />
+            <Text style={styles.backupBtnText}>Replay Onboarding</Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
+      <Toast message={toastMessage} visible={Boolean(toastMessage)} onHide={hideToast} />
     </SafeAreaView>
   );
 }
@@ -845,14 +876,8 @@ const styles = StyleSheet.create({
   reciterNameSelected: {
     color: Theme.colors.textPrimary,
   },
-  ustadCard: { backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: 8 },
-  ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(212,168,67,0.08)' },
-  ustadHeader: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 },
-  ustadTitle: { flex: 1, color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '800' },
-  teacherRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-start', paddingVertical: 6, paddingHorizontal: 8, borderRadius: Theme.borderRadius.sm, marginTop: 4, borderWidth: 1, borderColor: 'transparent' },
-  teacherRowActive: { backgroundColor: Theme.colors.accentGoldMuted, borderColor: Theme.colors.accentGoldBorder },
-  teacherName: { color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '700' },
-  teacherTime: { color: Theme.colors.textSecondary, fontSize: 11, marginTop: 2 },
+  reciterPlayBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(212,168,67,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
+  reciterPlayBtnActive: { backgroundColor: Theme.colors.accentGoldMuted },
   sessionNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: 8 },
   sessionNotifTitle: { color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '700' },
   sessionNotifSub: { color: Theme.colors.textSecondary, fontSize: 11, marginTop: 2 },
@@ -870,8 +895,12 @@ const styles = StyleSheet.create({
   dropdownItemText: { color: Theme.colors.textSecondary, fontSize: 13 },
   dropdownItemTextActive: { color: Theme.colors.accentGold, fontWeight: '700' },
   dropdownItemOffset: { color: Theme.colors.textMuted, fontSize: 11 },
-  pickerLabel: { color: Theme.colors.textSecondary, fontSize: 11, fontWeight: '700', marginTop: 10, marginBottom: 6 },
-  pickerHint: { color: Theme.colors.textMuted, fontSize: 11, marginTop: 6 },
+  cardIconBadge: { width: 44, height: 44, borderRadius: 22, backgroundColor: Theme.colors.accentGoldMuted, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, marginBottom: 10 },
+  fieldLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: Theme.spacing.md, marginBottom: 6 },
+  fieldLabel: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '800' },
+  pickerGroup: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
+  summaryStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(212,168,67,0.08)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 8, marginTop: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
+  summaryText: { flex: 1, color: Theme.colors.textPrimary, fontSize: 11, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   weekdayChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: 'rgba(255,255,255,0.04)' },
   weekdayChipActive: { backgroundColor: Theme.colors.accentGoldMuted, borderColor: Theme.colors.accentGold },
@@ -965,4 +994,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     flex: 1,
   },
+  ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(212,168,67,0.08)' },
+  ustadCardEnhanced: { backgroundColor: 'rgba(10,22,40,0.7)', borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1.5, borderColor: Theme.colors.accentGoldBorder, marginTop: 12 },
+  ustadHeaderEnhanced: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 6 },
+  ustadTitleEnhanced: { flex: 1, color: Theme.colors.textPrimary, fontSize: 16, fontWeight: '900' },
+  ustadSubEnhanced: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 14 },
+  calendarRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: Theme.spacing.md, paddingTop: Theme.spacing.sm, borderTopWidth: 1, borderTopColor: Theme.colors.border },
+  calendarLabel: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '700' },
+  calendarHint: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 2 },
 });
