@@ -11,7 +11,6 @@ import { faceOrdinalForDay, formatFace } from '../utils/face';
 import { RECITERS, ReciterId } from '../services/audio-service';
 import { AudioService } from '../services/audio-service';
 import { CalendarService } from '../services/calendar-service';
-import { PressableScale } from '../components/ui/PressableScale';
 
 const PRECONDITIONS_1_10 = [
   { n: 1, t: 'Sincerity for Allah', d: 'Have sincerity to Allah with all your actions especially with His Book. The Quran will either be an evidence for you or against you.' },
@@ -506,12 +505,12 @@ export default function OnboardingScreen() {
       <View style={styles.fixedNav}>
         <View style={styles.navRow}>
           {page > 0 ? (
-            <PressableScale accessibilityRole="button" accessibilityLabel="Go to previous onboarding page" style={styles.navBtnGhost} onPress={back}><Ionicons name="chevron-back" size={18} color={Theme.colors.textPrimary} /><Text style={styles.navGhostText}>Back</Text></PressableScale>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Go to previous onboarding page" style={styles.navBtnGhost} onPress={back} activeOpacity={0.7}><Ionicons name="chevron-back" size={18} color={Theme.colors.textPrimary} /><Text style={styles.navGhostText}>Back</Text></TouchableOpacity>
           ) : <View style={{ flex: 1 }} />}
           {page < totalPages - 1 ? (
-            <PressableScale accessibilityRole="button" accessibilityLabel="Go to next onboarding page" style={styles.navBtn} onPress={next}><Text style={styles.navBtnText}>Next</Text><Ionicons name="chevron-forward" size={18} color={Theme.colors.bgDark} /></PressableScale>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Go to next onboarding page" style={styles.navBtn} onPress={next} activeOpacity={0.7}><Text style={styles.navBtnText}>Next</Text><Ionicons name="chevron-forward" size={18} color={Theme.colors.bgDark} /></TouchableOpacity>
           ) : (
-            <PressableScale accessibilityRole="button" accessibilityLabel="Begin your Tikrar journey" style={styles.navBtn} onPress={finish}><Text style={styles.navBtnText}>Begin Journey</Text><Ionicons name="checkmark-circle" size={18} color={Theme.colors.bgDark} /></PressableScale>
+            <TouchableOpacity accessibilityRole="button" accessibilityLabel="Begin your Tikrar journey" style={styles.navBtn} onPress={finish} activeOpacity={0.7}><Text style={styles.navBtnText}>Begin Journey</Text><Ionicons name="checkmark-circle" size={18} color={Theme.colors.bgDark} /></TouchableOpacity>
           )}
         </View>
 
