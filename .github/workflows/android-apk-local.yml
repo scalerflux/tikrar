@@ -1,0 +1,78 @@
+name: Android APK Local Gradle
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v (for example, 1.0.2)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-local-apk:
+    name: Build APK with local Gradle
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Prebuild Android project
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: Build APK with Gradle
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Find APK
+        id: apk
+        shell: bash
+        run: |
+          apk_path="$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+          if [ -z "$apk_path" ]; then
+            echo "No APK found"
+            ls -R android/app/build/outputs 2>&1 | head -n 100
+            exit 1
+          fi
+          version="${{ inputs.version }}"
+          if [ -z "$version" ]; then
+            version="$(node -p 'require("./app.json").expo.version')-build.${GITHUB_RUN_NUMBER}"
+          fi
+          tag="v${version}-local"
+          file="Tikrar-${version}-local.apk"
+          cp "$apk_path" "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Built $file from $apk_path"
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.apk.outputs.tag }}" "${{ steps.apk.outputs.file }}" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "Tikrar ${{ steps.apk.outputs.tag }} (local Gradle)" \
+            --generate-notes
