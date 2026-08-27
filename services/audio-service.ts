@@ -4,7 +4,7 @@ export const RECITERS = {
   // Level 1 - Tajwid based, monotone foundation
   suwayd: { id: 'suwayd', name: 'Dr. Ayman Suwayd (Tajwid Based)', level: 1, baseUrl: 'https://everyayah.com/data/Ayman_Sowaid_64kbps/' },
   minshawi: { id: 'minshawi', name: 'Sheikh Minshāwī', level: 1, baseUrl: 'https://everyayah.com/data/Minshawy_Murattal_128kbps/' },
-  hudayfi: { id: 'hudayfi', name: 'Sheikh Ḥuḍayfī', level: 1, baseUrl: 'https://everyayah.com/data/Hudhaify_128kbps/' },
+  hudayfi: { id: 'hudayfi', name: 'Sheikh Ḥuḏayfī', level: 1, baseUrl: 'https://everyayah.com/data/Hudhaify_128kbps/' },
   husary: { id: 'husary', name: 'Sheikh Maḥmūd Khālid Al-Ḥuṣarī', level: 1, baseUrl: 'https://everyayah.com/data/Husary_128kbps/' },
   // Level 2 - Slightly harder, repetitive tone
   ayyub: { id: 'ayyub', name: 'Sheikh Muḥammad Ayyūb', level: 2, baseUrl: 'https://everyayah.com/data/Muhammad_Ayyoub_128kbps/' },
@@ -16,7 +16,7 @@ export const RECITERS = {
   qahtani: { id: 'qahtani', name: 'Sheikh Nāṣir Al-Qaḥṭānī', level: 2, baseUrl: 'https://everyayah.com/data/Nasser_Alqatami_128kbps/' },
   // Level 3 - Repetitive but harder to imitate uniqueness
   muaiqly: { id: 'muaiqly', name: 'Sheikh Māhir Al-Muʿayqilī', level: 3, baseUrl: 'https://everyayah.com/data/Maher_AlMuaiqly_64kbps/' },
-  kurdi: { id: 'kurdi', name: 'Sheikh Raʿd Al-Kurdī', level: 3, baseUrl: 'https://server6.mp3quran.net/kurdi/' },
+  // kurdi removed - no per-ayah source available
   yasser: { id: 'yasser', name: 'Sheikh Yāsir Ad-Dawsarī', level: 3, baseUrl: 'https://everyayah.com/data/Yasser_Ad-Dussary_128kbps/' },
   afasi: { id: 'afasi', name: 'Sheikh Mishārī Al-ʿAfāsī', level: 3, baseUrl: 'https://everyayah.com/data/Alafasy_128kbps/' },
   abbad: { id: 'abbad', name: 'Sheikh Fāris ʿAbbād', level: 3, baseUrl: 'https://everyayah.com/data/Fares_Abbad_64kbps/' },

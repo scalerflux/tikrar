@@ -159,6 +159,36 @@ export default function SettingsScreen() {
     await setUserSetting('reciter', id);
   };
 
+  const handleRemoveUstad = async () => {
+    Alert.alert('Remove Ustad', 'This removes your teacher, session days, timing, session reminders and calendar events. Continue?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Remove',
+        style: 'destructive',
+        onPress: async () => {
+          await NotificationService.cancelSessionReminder();
+          await CalendarService.removeUstadSessions();
+          await setUserSetting('ustadMode', 'none');
+          await setUserSetting('ustadTeacher', '');
+          await setUserSetting('ustadTiming', '');
+          await setUserSetting('ustadCustomWeekdays', '[]');
+          await setUserSetting('addToCalendar', 'false');
+          setUstadMode('none');
+          setCustomName('');
+          setCustomTiming('');
+          setCustomWeekdays([]);
+          setCustomHour('5');
+          setCustomMinute('00');
+          setCustomAmPm('pm');
+          setAddToCalendar(false);
+          setSessionNotifEnabled(false);
+          setSessionNotifTime('');
+          setToastMessage('Ustad removed');
+        },
+      },
+    ]);
+  };
+
   const handleSelectCountry = async (code: string) => {
     setCountryCode(code);
     await setUserSetting('countryCode', code);
@@ -475,7 +505,7 @@ export default function SettingsScreen() {
             <Ionicons name="school-outline" size={20} color={Theme.colors.accentGold} />
             <Text style={styles.sectionTitle}>My Ustad</Text>
           </View>
-            <Text style={styles.sectionSubtitle}>Optional. Select a teacher. Country / Profile is stored for your profile, times are shown in your device local time.</Text>
+          <Text style={styles.sectionSubtitle}>Optional. Select a teacher. Country / Profile is stored for your profile, times are shown in your device local time.</Text>
 
           <Text style={[styles.sectionSubtitle, { marginBottom: 4, fontWeight: '700' as any }]}>Country / Profile</Text>
           <TouchableOpacity style={styles.dropdownBtn} onPress={() => setShowCountryDropdown(!showCountryDropdown)} activeOpacity={0.7}>
@@ -538,20 +568,20 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.pickerGroup}>
               <View style={styles.timePickerRow}>
-                {['1','2','3','4','5','6','7','8','9','10','11','12'].map((h) => (
+                {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map((h) => (
                   <TouchableOpacity key={h} style={[styles.timeChip, customHour === h && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomHour(h); }}>
                     <Text style={[styles.timeChipText, customHour === h && styles.timeChipTextActive]}>{h}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
               <View style={styles.timePickerRow}>
-                {['00','15','30','45'].map((m) => (
+                {['00', '15', '30', '45'].map((m) => (
                   <TouchableOpacity key={m} style={[styles.timeChip, customMinute === m && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomMinute(m); }}>
                     <Text style={[styles.timeChipText, customMinute === m && styles.timeChipTextActive]}>:{m}</Text>
                   </TouchableOpacity>
                 ))}
                 <View style={styles.timeAmPmGroup}>
-                  {(['am','pm'] as const).map((ap) => (
+                  {(['am', 'pm'] as const).map((ap) => (
                     <TouchableOpacity key={ap} style={[styles.timeChip, customAmPm === ap && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomAmPm(ap); }}>
                       <Text style={[styles.timeChipText, customAmPm === ap && styles.timeChipTextActive]}>{ap.toUpperCase()}</Text>
                     </TouchableOpacity>
@@ -574,6 +604,13 @@ export default function SettingsScreen() {
             </View>
             <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCustomUstad}><Text style={styles.saveBtnText}>Save Ustad</Text></TouchableOpacity>
           </TouchableOpacity>
+
+          {ustadMode === 'custom' && (
+            <TouchableOpacity style={styles.removeUstadBtn} onPress={handleRemoveUstad} activeOpacity={0.7}>
+              <Ionicons name="person-remove-outline" size={16} color="#EF4444" />
+              <Text style={styles.removeUstadBtnText}>Remove Ustad</Text>
+            </TouchableOpacity>
+          )}
 
           <View style={styles.sessionNotifRow}>
             <View style={{ flex: 1 }}>
@@ -609,17 +646,25 @@ export default function SettingsScreen() {
                   const isPlaying = playingReciter === r.id;
                   return (
                     <View key={r.id} style={[styles.reciterBox, selected && styles.reciterBoxSelected]}>
-                      <TouchableOpacity style={{ flex: 1 }} onPress={() => handleSelectReciter(r.id)} activeOpacity={0.7}>
+                      {/* One large touch target covers the name and the radio icon so
+                          selection always registers, even with imprecise taps. The
+                          play preview stays a separate sibling button. */}
+                      <TouchableOpacity
+                        style={styles.reciterSelectArea}
+                        onPress={() => handleSelectReciter(r.id)}
+                        activeOpacity={0.7}
+                        accessibilityRole="radio"
+                        accessibilityState={{ selected }}
+                      >
                         <Text style={[styles.reciterName, selected && styles.reciterNameSelected]}>{r.name}</Text>
+                        <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={selected ? Theme.colors.accentGold : Theme.colors.textMuted} />
                       </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.reciterPlayBtn, isPlaying && styles.reciterPlayBtnActive]}
                         onPress={() => previewReciter(r.id)}
+                        activeOpacity={0.7}
                       >
                         <Ionicons name={isPlaying ? 'pause' : 'play'} size={14} color={isPlaying ? Theme.colors.bgDark : Theme.colors.accentGold} />
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleSelectReciter(r.id)} activeOpacity={0.7}>
-                        <Ionicons name={selected ? 'checkmark-circle' : 'ellipse-outline'} size={20} color={selected ? Theme.colors.accentGold : Theme.colors.textMuted} />
                       </TouchableOpacity>
                     </View>
                   );
@@ -998,6 +1043,9 @@ const styles = StyleSheet.create({
   },
   ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(212,168,67,0.08)' },
   ustadCardEnhanced: { backgroundColor: 'rgba(10,22,40,0.7)', borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1.5, borderColor: Theme.colors.accentGoldBorder, marginTop: 12 },
+  removeUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, paddingVertical: 10, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', backgroundColor: 'rgba(239,68,68,0.06)' },
+  removeUstadBtnText: { color: '#EF4444', fontSize: 13, fontWeight: '700' },
+  reciterSelectArea: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingVertical: 4 },
   ustadHeaderEnhanced: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 6 },
   ustadTitleEnhanced: { flex: 1, color: Theme.colors.textPrimary, fontSize: 16, fontWeight: '900' },
   ustadSubEnhanced: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 14 },

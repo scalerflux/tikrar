@@ -182,7 +182,7 @@ export default function TodayScreen() {
         setCustomWeekdays([]);
       }
       // If a Makkah-based session reminder was scheduled before a DST shift, fix it now.
-      NotificationService.resyncSessionReminderIfTimezoneChanged().catch(() => {});
+      NotificationService.resyncSessionReminderIfTimezoneChanged().catch(() => { });
 
       const sessionTotal = await UstadSessionService.getTotalSessions();
       setUstadSessionCount(sessionTotal);
@@ -261,18 +261,24 @@ export default function TodayScreen() {
     }
   };
 
-  const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && progress.phaseConnection === 1 && progress.phaseRevision === 1;
+  // Only the phases actually unlocked for today's face are required. Connection
+  // unlocks Day 3 and Revision unlocks Day 33, so early days must not wait on
+  // phases the user cannot yet check off.
+  const hasConnection = Boolean(scheduleItem?.connectionRange && scheduleItem.connectionRange.trim() !== '-');
+  const hasRevision = Boolean(scheduleItem?.revisionRange && scheduleItem.revisionRange.trim() !== '-');
+  const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && (!hasConnection || progress.phaseConnection === 1) && (!hasRevision || progress.phaseRevision === 1);
 
   const todayDayOfWeek = new Date().getDay();
   const ustadDays = getUstadSessionDays(ustadName, customWeekdays);
-  const isUstadDay = Boolean(ustadName) && ustadDays.includes(todayDayOfWeek);
+  // Day 1 has no previous face to recite to the ustad, so the card stays hidden.
+  const isUstadDay = Boolean(ustadName) && Boolean(yesterdayItem) && ustadDays.includes(todayDayOfWeek);
   const ustadGateOk = !isUstadDay || ustadAttended;
   const canConfirm = allPhasesDone && ustadGateOk;
 
   const handleConfirmToday = async () => {
     if (!progress || !scheduleItem) return;
     if (!allPhasesDone) {
-      Alert.alert('Incomplete', 'Complete all 6 phases before confirming.');
+      Alert.alert('Incomplete', 'Complete all available phases before confirming.');
       return;
     }
     if (!ustadGateOk) {
@@ -376,9 +382,6 @@ export default function TodayScreen() {
       </SafeAreaView>
     );
   }
-
-  const hasConnection = Boolean(scheduleItem.connectionRange && scheduleItem.connectionRange.trim() !== '-');
-  const hasRevision = Boolean(scheduleItem.revisionRange && scheduleItem.revisionRange.trim() !== '-');
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -501,7 +504,7 @@ export default function TodayScreen() {
             subtitle="Unlocks Day 3"
             iconName="link-outline"
             isCompleted={false}
-            onToggleComplete={() => {}}
+            onToggleComplete={() => { }}
             locked
             lockedHint="Connection unlocks Day 3, recite last 30 days"
           />
@@ -532,7 +535,7 @@ export default function TodayScreen() {
             subtitle="Unlocks Tour 1 Day 33"
             iconName="refresh-outline"
             isCompleted={false}
-            onToggleComplete={() => {}}
+            onToggleComplete={() => { }}
             locked
             lockedHint="Revision unlocks Tour 1 Day 33, 6 day circuit"
           />
@@ -575,7 +578,7 @@ export default function TodayScreen() {
           <Text style={styles.confirmHint}>
             {isUstadDay && !ustadAttended && allPhasesDone
               ? 'Mark your ustad attendance above to enable confirmation.'
-              : 'Complete all 6 phases to enable confirmation.'}
+              : 'Complete all available phases to enable confirmation.'}
           </Text>
         )}
 

@@ -361,20 +361,20 @@ export default function OnboardingScreen() {
               </View>
               <View style={styles.pickerGroup}>
                 <View style={styles.timePickerRow}>
-                  {['1','2','3','4','5','6','7','8','9','10','11','12'].map((h) => (
+                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'].map((h) => (
                     <TouchableOpacity key={h} style={[styles.timeChip, customHour === h && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomHour(h); }}>
                       <Text style={[styles.timeChipText, customHour === h && styles.timeChipTextActive]}>{h}</Text>
                     </TouchableOpacity>
                   ))}
                 </View>
                 <View style={styles.timePickerRow}>
-                  {['00','15','30','45'].map((m) => (
+                  {['00', '15', '30', '45'].map((m) => (
                     <TouchableOpacity key={m} style={[styles.timeChip, customMinute === m && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomMinute(m); }}>
                       <Text style={[styles.timeChipText, customMinute === m && styles.timeChipTextActive]}>:{m}</Text>
                     </TouchableOpacity>
                   ))}
                   <View style={styles.timeAmPmGroup}>
-                    {(['am','pm'] as const).map((ap) => (
+                    {(['am', 'pm'] as const).map((ap) => (
                       <TouchableOpacity key={ap} style={[styles.timeChip, customAmPm === ap && styles.timeChipActive]} onPress={() => { setUstadMode('custom'); setCustomAmPm(ap); }}>
                         <Text style={[styles.timeChipText, customAmPm === ap && styles.timeChipTextActive]}>{ap.toUpperCase()}</Text>
                       </TouchableOpacity>
@@ -472,9 +472,9 @@ export default function OnboardingScreen() {
             <Text style={[styles.h2, { marginTop: Theme.spacing.lg }]}>Choose Your Reciter</Text>
             <Text style={styles.sub}>Tap play for a preview, tap the name to choose. Level 1 is the monotone tajwid foundation. Move up when you can recite similarly.</Text>
 
-            {[1,2,3,4].map((lvl) => (
+            {[1, 2, 3, 4].map((lvl) => (
               <View key={lvl} style={{ marginTop: Theme.spacing.md }}>
-                <Text style={styles.reciterLevelLabel}>Level {lvl} {lvl===1 ? '• Tajwid foundation' : lvl===2 ? '• Repetitive tone' : lvl===3 ? '• Advanced uniqueness' : '• With meaning, hardest'}</Text>
+                <Text style={styles.reciterLevelLabel}>Level {lvl} {lvl === 1 ? '• Tajwid foundation' : lvl === 2 ? '• Repetitive tone' : lvl === 3 ? '• Advanced uniqueness' : '• With meaning, hardest'}</Text>
                 {Object.values(RECITERS).filter((r: any) => r.level === lvl).map((r: any) => {
                   const isSelected = selectedReciter === r.id;
                   const isPlaying = playingReciter === r.id;
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   priorBtnTextActive: { color: Theme.colors.bgDark },
   mushafBox: { flexDirection: 'row', gap: 8, backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 1, borderColor: 'rgba(16,185,129,0.25)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.md, alignItems: 'flex-start' },
   mushafText: { flex: 1, color: Theme.colors.textSecondary, fontSize: 12, lineHeight: 18, fontWeight: '600' },
-  fixedNav: { backgroundColor: Theme.colors.bgDark, paddingHorizontal: Theme.spacing.md, paddingTop: Theme.spacing.sm, paddingBottom: Theme.spacing.md, borderTopWidth: 1, borderTopColor: Theme.colors.border },
+  fixedNav: { backgroundColor: 'transparent', paddingHorizontal: Theme.spacing.md, paddingTop: Theme.spacing.xs, paddingBottom: Theme.spacing.sm },
   navRow: { flexDirection: 'row', gap: 12, marginTop: 0, alignItems: 'center' },
   navBtnGhost: { flex: 1, flexDirection: 'row', gap: 6, paddingVertical: 12, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, alignItems: 'center', justifyContent: 'center' },
   navGhostText: { color: Theme.colors.textPrimary, fontWeight: '700' },
