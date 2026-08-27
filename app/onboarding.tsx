@@ -503,12 +503,12 @@ export default function OnboardingScreen() {
 
         <View style={styles.navRow}>
           {page > 0 ? (
-            <PressableScale style={styles.navBtnGhost} onPress={back}><Ionicons name="chevron-back" size={18} color={Theme.colors.textPrimary} /><Text style={styles.navGhostText}>Back</Text></PressableScale>
+            <PressableScale accessibilityRole="button" accessibilityLabel="Go to previous onboarding page" style={styles.navBtnGhost} onPress={back}><Ionicons name="chevron-back" size={18} color={Theme.colors.textPrimary} /><Text style={styles.navGhostText}>Back</Text></PressableScale>
           ) : <View style={{ flex: 1 }} />}
           {page < totalPages - 1 ? (
-            <PressableScale style={styles.navBtn} onPress={next}><Text style={styles.navBtnText}>Next</Text><Ionicons name="chevron-forward" size={18} color={Theme.colors.bgDark} /></PressableScale>
+            <PressableScale accessibilityRole="button" accessibilityLabel="Go to next onboarding page" style={styles.navBtn} onPress={next}><Text style={styles.navBtnText}>Next</Text><Ionicons name="chevron-forward" size={18} color={Theme.colors.bgDark} /></PressableScale>
           ) : (
-            <PressableScale style={styles.navBtn} onPress={finish}><Text style={styles.navBtnText}>Begin Journey</Text><Ionicons name="checkmark-circle" size={18} color={Theme.colors.bgDark} /></PressableScale>
+            <PressableScale accessibilityRole="button" accessibilityLabel="Begin your Tikrar journey" style={styles.navBtn} onPress={finish}><Text style={styles.navBtnText}>Begin Journey</Text><Ionicons name="checkmark-circle" size={18} color={Theme.colors.bgDark} /></PressableScale>
           )}
         </View>
 
