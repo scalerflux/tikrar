@@ -171,7 +171,8 @@ export default function TodayScreen() {
       const streakInfo = calculateStreak(completedDateStrings);
       setStreak(streakInfo.currentStreak);
 
-      const savedUstad = await getUserSetting('ustadTeacher', '');
+      const savedUstadMode = await getUserSetting('ustadMode', 'none');
+      const savedUstad = savedUstadMode === 'custom' ? await getUserSetting('ustadTeacher', '') : '';
       setUstadName(savedUstad);
       try {
         const rawDays = await getUserSetting('ustadCustomWeekdays', '[]');
@@ -478,50 +479,64 @@ export default function TodayScreen() {
           <VoiceRecorderComponent onCompleted3Times={() => { if (progress.phaseRecording === 0) togglePhase('phaseRecording'); }} />
         </PhaseCard>
 
-        <PhaseCard
-          phaseNumber={5}
-          title="30-Day Connection (Rabt)"
-          subtitle={hasConnection ? `Recite Pages ${formatRangeText(scheduleItem.connectionRange)}` : "No connection portion for today"}
-          iconName="link-outline"
-          isCompleted={progress.phaseConnection === 1}
-          onToggleComplete={() => togglePhase('phaseConnection')}
-        >
-          <View style={styles.cardDetailBox}>
-            <Text style={styles.detailTitle}>Pages to Recite (Previous 30 Days):</Text>
-            {hasConnection ? (
-              <>
-                <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.connectionRange)}</Text>
-                <Text style={styles.detailInstruction}>Recite this entire 30-day perfected window once from memory without looking at the Mus-haf.</Text>
-              </>
-            ) : (
-              <Text style={styles.detailRestText}>Connection begins on Day 3 once you have completed your first 2 pages. For today, no connection portion is due!</Text>
-            )}
-          </View>
-        </PhaseCard>
+        {hasConnection ? (
+          <PhaseCard
+            phaseNumber={5}
+            title="30-Day Connection (Rabt)"
+            subtitle={`Recite Pages ${formatRangeText(scheduleItem.connectionRange)}`}
+            iconName="link-outline"
+            isCompleted={progress.phaseConnection === 1}
+            onToggleComplete={() => togglePhase('phaseConnection')}
+          >
+            <View style={styles.cardDetailBox}>
+              <Text style={styles.detailTitle}>Pages to Recite (Previous 30 Days):</Text>
+              <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.connectionRange)}</Text>
+              <Text style={styles.detailInstruction}>Recite this entire 30-day perfected window once from memory without looking at the Mus-haf.</Text>
+            </View>
+          </PhaseCard>
+        ) : (
+          <PhaseCard
+            phaseNumber={5}
+            title="30-Day Connection (Rabt)"
+            subtitle="Unlocks Day 3"
+            iconName="link-outline"
+            isCompleted={false}
+            onToggleComplete={() => {}}
+            locked
+            lockedHint="Connection unlocks Day 3, recite last 30 days"
+          />
+        )}
 
-        <PhaseCard
-          phaseNumber={6}
-          title="Old Memorization Revision"
-          subtitle={hasRevision ? `Tour #${scheduleItem.tourNumber} • Pages ${formatRangeText(scheduleItem.revisionRange)}` : "No old revision portion yet"}
-          iconName="refresh-outline"
-          isCompleted={progress.phaseRevision === 1}
-          onToggleComplete={() => togglePhase('phaseRevision')}
-        >
-          <View style={styles.cardDetailBox}>
-            <Text style={styles.detailTitle}>Assigned 6-Day Circuit Slice:</Text>
-            {hasRevision ? (
-              <>
-                <View style={styles.tourPillRow}>
-                  <View style={styles.tourPill}><Text style={styles.tourPillText}>Tour #{scheduleItem.tourNumber}</Text></View>
-                </View>
-                <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.revisionRange)}</Text>
-                <Text style={styles.detailInstruction}>Recite this assigned slice from memory without looking at the Mus-haf. You will complete your entire old memorization every 6 days.</Text>
-              </>
-            ) : (
-              <Text style={styles.detailRestText}>Revision circuits begin on Tour 1 (Day 33) after your first 30 days of memorization have graduated from the connection window.</Text>
-            )}
-          </View>
-        </PhaseCard>
+        {hasRevision ? (
+          <PhaseCard
+            phaseNumber={6}
+            title="Old Memorization Revision"
+            subtitle={`Tour #${scheduleItem.tourNumber} • Pages ${formatRangeText(scheduleItem.revisionRange)}`}
+            iconName="refresh-outline"
+            isCompleted={progress.phaseRevision === 1}
+            onToggleComplete={() => togglePhase('phaseRevision')}
+          >
+            <View style={styles.cardDetailBox}>
+              <Text style={styles.detailTitle}>Assigned 6-Day Circuit Slice:</Text>
+              <View style={styles.tourPillRow}>
+                <View style={styles.tourPill}><Text style={styles.tourPillText}>Tour #{scheduleItem.tourNumber}</Text></View>
+              </View>
+              <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.revisionRange)}</Text>
+              <Text style={styles.detailInstruction}>Recite this assigned slice from memory without looking at the Mus-haf. You will complete your entire old memorization every 6 days.</Text>
+            </View>
+          </PhaseCard>
+        ) : (
+          <PhaseCard
+            phaseNumber={6}
+            title="Old Memorization Revision"
+            subtitle="Unlocks Tour 1 Day 33"
+            iconName="refresh-outline"
+            isCompleted={false}
+            onToggleComplete={() => {}}
+            locked
+            lockedHint="Revision unlocks Tour 1 Day 33, 6 day circuit"
+          />
+        )}
 
         {isUstadDay ? (
           <View style={styles.ustadTodayCard}>
