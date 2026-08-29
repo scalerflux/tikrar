@@ -84,7 +84,15 @@ export async function getUserSetting(key: string, defaultValue: string = ''): Pr
     try {
       const row = await db.getFirstAsync<{ value: string }>('SELECT value FROM user_settings WHERE key = ?', [key]);
       if (row) return row.value;
-      useAsyncStorageFallback = true;
+      // Key simply not in SQLite yet. Do NOT flip the global fallback flag:
+      // a missing row is not a SQLite failure. Check AsyncStorage once so
+      // values written there before SQLite was available are still found,
+      // then keep SQLite as the primary store.
+      try {
+        const val = await AsyncStorage.getItem(`setting_${key}`);
+        if (val !== null) return val;
+      } catch {}
+      return defaultValue;
     } catch (e) {
       console.warn('getUserSetting sqlite error:', e);
       useAsyncStorageFallback = true;
@@ -143,7 +151,15 @@ export async function getDailyProgress(dayNumber: number): Promise<DailyProgress
     try {
       const row = await db.getFirstAsync<DailyProgressRow>('SELECT * FROM daily_progress WHERE dayNumber = ?', [dayNumber]);
       if (row) return row;
-      useAsyncStorageFallback = true;
+      // Missing row is not a SQLite failure — check AsyncStorage without
+      // permanently abandoning SQLite.
+      try {
+        const json = await AsyncStorage.getItem(`progress_${dayNumber}`);
+        if (json) {
+          const parsed = JSON.parse(json) as DailyProgressRow;
+          return { ...defaultRow, ...parsed };
+        }
+      } catch {}
     } catch (e) {
       console.warn('getDailyProgress sqlite error:', e);
       useAsyncStorageFallback = true;
@@ -229,39 +245,42 @@ export async function getAllCompletedDays(): Promise<number[]> {
 
 export async function getAllCompletedDaysWithDates(): Promise<CompletedDay[]> {
   const db = await getDb();
+  let sqliteRows: CompletedDay[] = [];
+  let sqliteFailed = false;
   if (db) {
     try {
       const rows = await db.getAllAsync<{ dayNumber: number; completedDate: string | null }>(
         'SELECT dayNumber, completedDate FROM daily_progress WHERE isComplete = 1'
       );
-      if (rows.length > 0) {
-        return rows.map((r) => ({ dayNumber: r.dayNumber, completedDate: r.completedDate ?? '' }));
-      }
-      useAsyncStorageFallback = true;
+      sqliteRows = rows.map((r) => ({ dayNumber: r.dayNumber, completedDate: r.completedDate ?? '' }));
     } catch (e) {
       console.warn('getAllCompletedDays sqlite error:', e);
       useAsyncStorageFallback = true;
+      sqliteFailed = true;
     }
   }
 
-  if (useAsyncStorageFallback) {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const progressKeys = keys.filter((k) => k.startsWith('progress_'));
-      const completed: CompletedDay[] = [];
-      for (const key of progressKeys) {
-        const val = await AsyncStorage.getItem(key);
-        if (val) {
-          const obj: DailyProgressRow = JSON.parse(val);
-          if (obj.isComplete === 1) {
-            completed.push({ dayNumber: obj.dayNumber, completedDate: obj.completedDate ?? '' });
-          }
+  // Empty results are NOT a SQLite failure. Still check AsyncStorage so
+  // completions saved there (before SQLite was available) are not lost,
+  // without permanently abandoning SQLite as the primary store.
+  try {
+    const keys = await AsyncStorage.getAllKeys();
+    const progressKeys = keys.filter((k) => k.startsWith('progress_'));
+    const completed: CompletedDay[] = [...sqliteRows];
+    const knownDays = new Set(sqliteRows.map((r) => r.dayNumber));
+    for (const key of progressKeys) {
+      const val = await AsyncStorage.getItem(key);
+      if (val) {
+        const obj: DailyProgressRow = JSON.parse(val);
+        if (obj.isComplete === 1 && !knownDays.has(obj.dayNumber)) {
+          completed.push({ dayNumber: obj.dayNumber, completedDate: obj.completedDate ?? '' });
         }
       }
-      return completed;
-    } catch (e) {
-      console.warn('getAllCompletedDays asyncstorage error:', e);
     }
+    return completed;
+  } catch (e) {
+    console.warn('getAllCompletedDays asyncstorage error:', e);
   }
-  return [];
+
+  return sqliteFailed ? [] : sqliteRows;
 }

@@ -1,4 +1,5 @@
 import { getUserSetting, setUserSetting } from '../database/db';
+import { datesBetweenExclusive } from '../utils/schedule-calculator';
 
 export interface Excuse {
   id: string;
@@ -13,6 +14,39 @@ const EXCUSES_KEY = 'excuses';
 const LAST_CONFIRMED_DAY_KEY = 'lastConfirmedDay';
 const LAST_CONFIRMED_DATE_KEY = 'lastConfirmedDate';
 const LAST_APP_OPEN_KEY = 'lastAppOpenDate';
+
+export interface MissedDay {
+  date: string;
+  dayNumber: number;
+}
+
+/**
+ * Pure missed-day detection. A calendar date is "missed" when it falls in
+ * the window [lastOpen, today] (inclusive of lastOpen) and is neither
+ * completed nor covered by an excuse. Used by the Today screen to decide
+ * when to show the excuse prompt, so the rules live in one testable place.
+ */
+export function computeMissedDays(
+  lastOpen: string,
+  today: string,
+  completedDates: string[],
+  excusedDates: string[],
+  currentDay: number
+): MissedDay[] {
+  if (!lastOpen || lastOpen >= today) return [];
+
+  const completed = new Set(completedDates.filter((d) => typeof d === 'string' && d.length > 0));
+  const excused = new Set(excusedDates);
+
+  const missed: MissedDay[] = [];
+  const candidates = [lastOpen, ...datesBetweenExclusive(lastOpen, today)];
+  for (const date of candidates) {
+    if (!completed.has(date) && !excused.has(date)) {
+      missed.push({ date, dayNumber: currentDay });
+    }
+  }
+  return missed;
+}
 
 export class NegligenceService {
   static async getCount(): Promise<number> {

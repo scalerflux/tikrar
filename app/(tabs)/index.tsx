@@ -8,13 +8,13 @@ import { PhaseCard } from '../../components/today/PhaseCard';
 import { AudioPlayerComponent } from '../../components/today/AudioPlayerComponent';
 import { VoiceRecorderComponent } from '../../components/today/VoiceRecorderComponent';
 import { TafseerViewComponent } from '../../components/today/TafseerViewComponent';
-import { getScheduleItem, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, localDateString, datesBetweenExclusive } from '../../utils/schedule-calculator';
+import { getScheduleItem, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, localDateString } from '../../utils/schedule-calculator';
 import { getReminderForDay, DailyReminder } from '../../utils/reminders';
 import { DailyReminderCard } from '../../components/today/DailyReminderCard';
 import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting } from '../../database/db';
 import { AudioService } from '../../services/audio-service';
 import { TranslationService } from '../../services/translation-service';
-import { NegligenceService, Excuse } from '../../services/negligence-service';
+import { NegligenceService, Excuse, computeMissedDays } from '../../services/negligence-service';
 import { UstadSessionService, getUstadSessionDays } from '../../services/ustad-session-service';
 import { NotificationService } from '../../services/notification-service';
 import { getDeviceUtcOffsetHour } from '../../utils/timezone';
@@ -65,6 +65,7 @@ export default function TodayScreen() {
   const [scheduleItem, setScheduleItem] = useState<ScheduleItem | null>(null);
   const [reminder, setReminder] = useState<DailyReminder | null>(null);
   const [yesterdayItem, setYesterdayItem] = useState<ScheduleItem | null>(null);
+  const [ustadRecitationItem, setUstadRecitationItem] = useState<ScheduleItem | null>(null);
   const [progress, setProgress] = useState<DailyProgressRow | null>(null);
   const [streak, setStreak] = useState(0);
   const [showCelebration, setShowCelebration] = useState(false);
@@ -165,6 +166,11 @@ export default function TodayScreen() {
       const prevItem = getUstadRecitationItem(day);
       setYesterdayItem(prevItem);
 
+      // Ustad recitation follows what was last recited to the ustad, so a
+      // non-session day (e.g. Friday) does not skip or repeat faces.
+      const recitationItem = await UstadSessionService.getNextRecitationItem(day);
+      setUstadRecitationItem(recitationItem);
+
       const prog = await getDailyProgress(day);
       setProgress(prog);
 
@@ -209,16 +215,8 @@ export default function TodayScreen() {
         setShowCelebration(false);
       }
 
-      let missedQueue: Array<{ date: string; dayNumber: number }> = [];
-      if (lastOpen && lastOpen !== today) {
-        const candidateDates = [lastOpen, ...datesBetweenExclusive(lastOpen, today)];
-        for (const date of candidateDates) {
-          const hasExcuse = await NegligenceService.hasExcuseForDate(date);
-          if (!hasExcuse && !completedDateStrings.includes(date)) {
-            missedQueue.push({ date, dayNumber: day });
-          }
-        }
-      }
+      const excusedDates = excuseList.map((e) => e.date);
+      const missedQueue = computeMissedDays(lastOpen, today, completedDateStrings, excusedDates, day);
       setExcuseQueue(missedQueue);
       if (missedQueue.length > 0) {
         setPendingExcuse(missedQueue[0]);
@@ -335,14 +333,16 @@ export default function TodayScreen() {
       await UstadSessionService.removeAttendanceForDate(today);
       setUstadAttended(false);
       setUstadSessionCount(await UstadSessionService.getTotalSessions());
+      setUstadRecitationItem(await UstadSessionService.getNextRecitationItem(currentDay));
       return;
     }
-    if (!yesterdayItem) return;
+    if (!ustadRecitationItem) return;
     await UstadSessionService.setAttendanceForDate(today);
     await UstadSessionService.logSession({
       dayNumber: currentDay,
-      faceNumber: yesterdayItem.faceNumber,
-      surahName: yesterdayItem.surahName,
+      scheduleDay: ustadRecitationItem.dayNumber,
+      faceNumber: ustadRecitationItem.faceNumber,
+      surahName: ustadRecitationItem.surahName,
       ustadName,
     });
     setUstadAttended(true);
@@ -479,7 +479,7 @@ export default function TodayScreen() {
           isCompleted={progress.phaseRecording === 1}
           onToggleComplete={() => togglePhase('phaseRecording')}
         >
-          <VoiceRecorderComponent onCompleted3Times={() => { if (progress.phaseRecording === 0) togglePhase('phaseRecording'); }} />
+          <VoiceRecorderComponent dateKey={currentDateStr} onCompleted3Times={() => { if (progress.phaseRecording === 0) togglePhase('phaseRecording'); }} />
         </PhaseCard>
 
         {hasConnection ? (
@@ -548,14 +548,14 @@ export default function TodayScreen() {
               <Text style={styles.ustadTodayTitle}>Today: recite to your Ustad</Text>
             </View>
             <View style={styles.ustadTodayFaceBox}>
-              <Text style={styles.ustadTodayLabel}>Previous memorized face</Text>
-              <Text style={styles.ustadTodayFace}>{yesterdayItem?.faceNumber} — {yesterdayItem?.surahName} {yesterdayItem?.faceNumber.includes('h') ? '' : '(full page)'}</Text>
-              <Text style={styles.ustadTodayHint}>Recite the previous face at class time to give yourself more revision time. Mark attendance after reciting.</Text>
+              <Text style={styles.ustadTodayLabel}>Face to recite to your ustad</Text>
+              <Text style={styles.ustadTodayFace}>{ustadRecitationItem?.faceNumber} — {ustadRecitationItem?.surahName} {ustadRecitationItem?.faceNumber.includes('h') ? '' : '(full page)'}</Text>
+              <Text style={styles.ustadTodayHint}>Recite this face at class time to give yourself more revision time. Mark attendance after reciting.</Text>
             </View>
             <TouchableOpacity
               style={[styles.attendanceBtn, ustadAttended && styles.attendanceBtnDone]}
               onPress={handleMarkUstadAttendance}
-              disabled={!yesterdayItem}
+              disabled={!ustadRecitationItem}
               activeOpacity={0.8}
             >
               <Ionicons name={ustadAttended ? 'checkmark-circle' : 'checkbox-outline'} size={18} color={ustadAttended ? Theme.colors.bgDark : Theme.colors.accentGold} />

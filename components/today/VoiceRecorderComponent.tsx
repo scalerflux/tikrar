@@ -3,38 +3,61 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useAudioPlayer, useAudioPlayerStatus, useAudioRecorder, RecordingPresets, requestRecordingPermissionsAsync } from 'expo-audio';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '../../constants/theme';
+import { RecordingService, VoiceRecording } from '../../services/recording-service';
 
 interface VoiceRecorderComponentProps {
   onCompleted3Times?: () => void;
+  /** Local date ("YYYY-MM-DD") the recordings belong to. */
+  dateKey: string;
 }
 
 export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
   onCompleted3Times,
+  dateKey,
 }) => {
-  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY, (status) => {
-    if (status.isFinished && status.url) {
-      setRecordedUri(status.url);
-    }
-  });
+  const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const playbackPlayer = useAudioPlayer();
   const playbackStatus = useAudioPlayerStatus(playbackPlayer);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedUri, setRecordedUri] = useState<string | null>(null);
-  const [isPlayingRecording, setIsPlayingRecording] = useState(false);
-  const [reciteCount, setReciteCount] = useState(0);
+  const [recordings, setRecordings] = useState<VoiceRecording[]>([]);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const lastPlayedUriRef = React.useRef<string | null>(null);
+
+  const reciteCount = recordings.length;
+
+  // Load today's saved recordings (and reload when the day changes).
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const saved = await RecordingService.getRecordings(dateKey);
+        if (!cancelled) setRecordings(saved);
+      } catch (e) {
+        console.warn('Failed to load recordings', e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [dateKey]);
 
   React.useEffect(() => {
     if (playbackStatus.didJustFinish) {
-      setIsPlayingRecording(false);
+      setPlayingIndex(null);
     }
   }, [playbackStatus.didJustFinish]);
 
   React.useEffect(() => {
-    setIsPlayingRecording(playbackStatus.playing);
+    if (!playbackStatus.playing) return;
+    // keep state in sync when playback starts outside of playRecording
   }, [playbackStatus.playing]);
 
   const startRecording = async () => {
+    if (recordings.length >= 3) {
+      Alert.alert('3 recordings saved', 'Delete one of your recordings below if you want to record again.');
+      return;
+    }
     try {
       const permission = await requestRecordingPermissionsAsync();
       if (!permission.granted) {
@@ -46,7 +69,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
         try {
           playbackPlayer.pause();
         } catch {}
-        setIsPlayingRecording(false);
+        setPlayingIndex(null);
       }
 
       await setAudioModeForRecording();
@@ -64,65 +87,76 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
       setIsRecording(false);
       await recorder.stop();
       const uri = recorder.uri;
-      if (uri) {
-        setRecordedUri(uri);
-      }
 
-      setReciteCount(prev => {
-        const next = prev + 1;
-        if (next >= 3 && onCompleted3Times) {
-          onCompleted3Times();
+      if (uri) {
+        setIsSaving(true);
+        try {
+          const saved = await RecordingService.addRecording(dateKey, uri);
+          setRecordings((prev) => {
+            const next = [...prev, saved];
+            if (next.length >= 3 && onCompleted3Times) {
+              onCompleted3Times();
+            }
+            return next;
+          });
+        } finally {
+          setIsSaving(false);
         }
-        return next;
-      });
+      }
     } catch (err) {
       console.error('Failed to stop recording', err);
     }
   };
 
-  const togglePlayback = async () => {
-    if (!recordedUri) return;
+  const playRecording = async (index: number) => {
+    const recording = recordings[index];
+    if (!recording) return;
     try {
+      // Tapping the playing row pauses it.
+      if (playingIndex === index && playbackStatus.playing) {
+        playbackPlayer.pause();
+        setPlayingIndex(null);
+        return;
+      }
+
       if (playbackStatus.playing) {
         playbackPlayer.pause();
-        setIsPlayingRecording(false);
-        return;
       }
 
       await setAudioModeForPlayback();
 
-      const isNewUri = lastPlayedUriRef.current !== recordedUri;
-
-      if (!isNewUri && playbackStatus.didJustFinish) {
-        try {
-          await playbackPlayer.seekTo(0);
-        } catch {}
+      const isNewUri = lastPlayedUriRef.current !== recording.uri;
+      if (!isNewUri && playbackStatus.isLoaded && playbackStatus.currentTime > 0 && playbackStatus.currentTime < (playbackStatus.duration || 1)) {
         playbackPlayer.play();
-        setIsPlayingRecording(true);
+        setPlayingIndex(index);
         return;
       }
 
-      if (
-        !isNewUri &&
-        playbackStatus.isLoaded &&
-        playbackStatus.currentTime > 0 &&
-        playbackStatus.currentTime < (playbackStatus.duration || 1)
-      ) {
-        playbackPlayer.play();
-        setIsPlayingRecording(true);
-        return;
-      }
-
-      lastPlayedUriRef.current = recordedUri;
-      playbackPlayer.replace({ uri: recordedUri });
+      lastPlayedUriRef.current = recording.uri;
+      playbackPlayer.replace({ uri: recording.uri });
       playbackPlayer.play();
-      setIsPlayingRecording(true);
+      setPlayingIndex(index);
     } catch (err) {
       console.error('Error playing recording', err);
     }
   };
 
-  const playRecording = togglePlayback;
+  const deleteRecording = async (index: number) => {
+    const recording = recordings[index];
+    if (!recording) return;
+    try {
+      if (playingIndex === index) {
+        try {
+          playbackPlayer.pause();
+        } catch {}
+        setPlayingIndex(null);
+      }
+      const remaining = await RecordingService.removeRecording(dateKey, recording.uri);
+      setRecordings(remaining);
+    } catch (err) {
+      console.error('Failed to delete recording', err);
+    }
+  };
 
   const setAudioModeForRecording = async () => {
     const { setAudioModeAsync } = await import('expo-audio');
@@ -145,13 +179,14 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
     <View style={styles.container}>
       <Text style={styles.instruction}>
         Recite from memory without looking at Mus-haf (3 times required).
-        Record your recitation and check for errors.
+        Each take is saved separately so you can compare them.
       </Text>
 
       <View style={styles.controlsRow}>
         <TouchableOpacity
-          style={[styles.recordBtn, isRecording && styles.recordingActiveBtn]}
+          style={[styles.recordBtn, isRecording && styles.recordingActiveBtn, recordings.length >= 3 && styles.recordBtnDone]}
           onPress={isRecording ? stopRecording : startRecording}
+          disabled={isSaving}
         >
           <Ionicons
             name={isRecording ? "stop" : "mic"}
@@ -159,7 +194,13 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
             color={Theme.colors.textPrimary}
           />
           <Text style={styles.recordBtnText}>
-            {isRecording ? "Stop Recording" : "Record Recitation"}
+            {isRecording
+              ? "Stop Recording"
+              : recordings.length >= 3
+                ? "All 3 Recorded"
+                : isSaving
+                  ? "Saving..."
+                  : `Record Take ${recordings.length + 1}`}
           </Text>
         </TouchableOpacity>
 
@@ -169,21 +210,38 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
         </View>
       </View>
 
-      {recordedUri && (
+      {recordings.length > 0 && (
         <View style={styles.playbackBox}>
-          <TouchableOpacity
-            style={styles.playbackBtn}
-            onPress={playRecording}
-          >
-            <Ionicons
-              name={isPlayingRecording ? "pause-circle" : "play-circle"}
-              size={28}
-              color={Theme.colors.accentGold}
-            />
-            <Text style={styles.playbackText}>
-              {isPlayingRecording ? "Playing My Recitation..." : "Listen to My Recording"}
-            </Text>
-          </TouchableOpacity>
+          <Text style={styles.savedHeader}>MY RECORDINGS</Text>
+          {recordings.map((recording, index) => {
+            const isThisPlaying = playingIndex === index && playbackStatus.playing;
+            return (
+              <View key={recording.uri} style={styles.recordingRow}>
+                <TouchableOpacity
+                  style={styles.recordingPlayBtn}
+                  onPress={() => playRecording(index)}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons
+                    name={isThisPlaying ? "pause-circle" : "play-circle"}
+                    size={26}
+                    color={Theme.colors.accentGold}
+                  />
+                  <Text style={styles.recordingLabel}>
+                    {isThisPlaying ? `Playing Take ${index + 1}...` : `Take ${index + 1}`}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={() => deleteRecording(index)}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
         </View>
       )}
     </View>
@@ -231,6 +289,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
   },
+  recordBtnDone: {
+    backgroundColor: 'rgba(16,185,129,0.15)',
+    borderWidth: 1,
+    borderColor: Theme.colors.successGreen,
+  },
   countBadge: {
     backgroundColor: Theme.colors.accentGoldMuted,
     paddingHorizontal: Theme.spacing.md,
@@ -257,15 +320,38 @@ const styles = StyleSheet.create({
     paddingTop: Theme.spacing.sm,
     borderTopWidth: 1,
     borderTopColor: Theme.colors.border,
+    gap: 6,
   },
-  playbackBtn: {
+  savedHeader: {
+    color: Theme.colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    marginBottom: 2,
+  },
+  recordingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(10,22,40,0.6)',
+    borderRadius: Theme.borderRadius.sm,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    paddingRight: 10,
+  },
+  recordingPlayBtn: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 10,
   },
-  playbackText: {
+  recordingLabel: {
     color: Theme.colors.accentGold,
     fontSize: 13,
     fontWeight: '600',
+  },
+  deleteBtn: {
+    padding: 6,
   },
 });

@@ -1,7 +1,14 @@
 import { getUserSetting, setUserSetting } from '../database/db';
+import { getScheduleItem, getUstadRecitationItem, ScheduleItem } from '../utils/schedule-calculator';
 
 export interface UstadSession {
   dayNumber: number;
+  /**
+   * Program day of the face that was recited. Older session entries do not
+   * have this (the face was always the previous day's), so it is derived as
+   * dayNumber - 1 when absent.
+   */
+  scheduleDay?: number;
   faceNumber: string;
   surahName: string;
   ustadName: string;
@@ -70,6 +77,33 @@ export class UstadSessionService {
   static async hasAttendanceForDate(date: string): Promise<boolean> {
     const v = await getUserSetting(`ustadAttendance_${date}`, '');
     return v === 'true';
+  }
+
+  /**
+   * The face to recite at the next session. Sessions keep track of what was
+   * memorized: the next recitation is the face right after the last one
+   * recited, so a gap between sessions (e.g. no Friday class) does not skip
+   * or repeat faces. Example — sessions Mon-Thu + Sat-Sun: Thursday recites
+   * 8h2, Friday has no class, Saturday recites 9h1 (memorized Thursday),
+   * Sunday recites 9h2, and so on. Falls back to the previous day's face
+   * when nothing has been recited yet or the next face is not memorized yet.
+   */
+  static async getNextRecitationItem(currentDay: number): Promise<ScheduleItem | null> {
+    const fallback = getUstadRecitationItem(currentDay);
+    try {
+      const sessions = await this.getSessions();
+      if (sessions.length === 0) return fallback;
+      const last = sessions[sessions.length - 1];
+      const lastScheduleDay =
+        typeof last.scheduleDay === 'number' && Number.isInteger(last.scheduleDay)
+          ? last.scheduleDay
+          : last.dayNumber - 1;
+      const next = getScheduleItem(lastScheduleDay + 1);
+      if (!next || next.dayNumber >= currentDay) return fallback;
+      return next;
+    } catch {
+      return fallback;
+    }
   }
 
   static async setAttendanceForDate(date: string): Promise<void> {
