@@ -143,6 +143,38 @@ export function getSurahPageNumber(faceNumber: string): number {
   return isNaN(page) ? 1 : page;
 }
 
+function normalizeFaceKey(face: string): string {
+  return face.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * The program day a user should continue from when they have already
+ * memorized up to `page` (optionally only half of it). The entered face is
+ * considered memorized, so the returned day is the schedule day of the NEXT
+ * new face:
+ *  - half 'h1' → the day of "N h2" (first half already memorized)
+ *  - half 'h2' → the first face of page N+1
+ *  - no half   → the first face of page N+1 (whole page memorized)
+ * Everything before that day is marked complete, so phase 1 (yesterday's
+ * repetition), ustad recitation, connection and revision all resolve from
+ * the existing schedule data. Returns null when the Mush-haf is finished
+ * (page 604 entered).
+ */
+export function getStartDayAfterPriorFace(page: number, half: 'h1' | 'h2' | null): number | null {
+  if (!Number.isInteger(page) || page < 1 || page > 604) return null;
+  const items = scheduleData as ScheduleItem[];
+
+  if (half === 'h1') {
+    const secondHalf = items.find((d) => normalizeFaceKey(d.faceNumber) === `${page} h2`);
+    if (secondHalf) return secondHalf.dayNumber;
+  }
+
+  const nextPage = items.find((d) => getSurahPageNumber(d.faceNumber) === page + 1);
+  if (nextPage) return nextPage.dayNumber;
+
+  return null;
+}
+
 interface PageAyahInfo {
   s: number;
   sa: number;

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tikrar",
     "slug": "tikrar-app",
-    "version": "1.0.7",
+    "version": "1.0.8",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tikrarapp",
@@ -16,7 +16,7 @@
         "backgroundColor": "#0A1628"
       },
       "package": "com.tikrar.app",
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": [
         "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",

@@ -76,6 +76,7 @@ export default function TodayScreen() {
   const [negligenceCount, setNegligenceCount] = useState(0);
   const [excuseInput, setExcuseInput] = useState('');
   const [showExcusePrompt, setShowExcusePrompt] = useState(false);
+  const [excuseTotal, setExcuseTotal] = useState(0);
   const [pendingExcuse, setPendingExcuse] = useState<{ date: string; dayNumber: number } | null>(null);
   const [excuseQueue, setExcuseQueue] = useState<Array<{ date: string; dayNumber: number }>>([]);
   const [pastExcuses, setPastExcuses] = useState<Excuse[]>([]);
@@ -88,6 +89,9 @@ export default function TodayScreen() {
   const confettiSpin = useRef(new Animated.Value(0)).current;
   const lastDateRef = useRef(localDateString());
   const confirmedTodayRef = useRef(false);
+  // Dates the user already answered this session, so a concurrent
+  // loadTodayData run can never re-prompt them.
+  const resolvedDatesRef = useRef<Set<string>>(new Set());
 
   const getTimeUntilFajr = () => {
     const now = new Date();
@@ -149,7 +153,6 @@ export default function TodayScreen() {
         const minutes = Number(fajrMatch[2]);
         if (hours < 24 && minutes < 60) fajrMinutesRef.current = hours * 60 + minutes;
       }
-      const lastOpen = await NegligenceService.getLastAppOpen();
       const completedWithDates = await getAllCompletedDaysWithDates();
       const completedDayNumbers = completedWithDates.map((c) => c.dayNumber);
       const completedDateStrings = completedWithDates
@@ -215,9 +218,22 @@ export default function TodayScreen() {
         setShowCelebration(false);
       }
 
-      const excusedDates = excuseList.map((e) => e.date);
-      const missedQueue = computeMissedDays(lastOpen, today, completedDateStrings, excusedDates, day);
+      // Re-read the detection inputs right before computing so a concurrent
+      // run (e.g. tab refocus while the user is answering) cannot resurrect
+      // days already resolved, and filter anything answered this session.
+      const [freshLastOpen, freshExcuses] = await Promise.all([
+        NegligenceService.getLastAppOpen(),
+        NegligenceService.getExcuses(),
+      ]);
+      const missedQueue = computeMissedDays(
+        freshLastOpen,
+        today,
+        completedDateStrings,
+        freshExcuses.map((e) => e.date),
+        day
+      ).filter((m) => !resolvedDatesRef.current.has(m.date));
       setExcuseQueue(missedQueue);
+      setExcuseTotal(missedQueue.length);
       if (missedQueue.length > 0) {
         setPendingExcuse(missedQueue[0]);
         setShowExcusePrompt(true);
@@ -294,6 +310,7 @@ export default function TodayScreen() {
 
   const resolveExcuse = async (reason: string, countsAsNegligence: boolean) => {
     if (!pendingExcuse) return;
+    resolvedDatesRef.current.add(pendingExcuse.date);
     if (countsAsNegligence) {
       const next = await NegligenceService.increment();
       setNegligenceCount(next);
@@ -589,6 +606,11 @@ export default function TodayScreen() {
           <View style={styles.excuseCard}>
             <Ionicons name="alert-circle-outline" size={32} color="#EF4444" />
             <Text style={styles.excuseTitle}>Missed Day Detected</Text>
+            {excuseTotal > 1 && (
+              <View style={styles.excuseProgressPill}>
+                <Text style={styles.excuseProgressText}>Missed day {excuseTotal - excuseQueue.length + 1} of {excuseTotal} — one prompt per missed day</Text>
+              </View>
+            )}
             <Text style={styles.excuseSub}>You moved to {currentDateStr} without confirming Day {pendingExcuse?.dayNumber} on {pendingExcuse?.date}. What was the reason?</Text>
             <TextInput style={styles.excuseInputLarge} value={excuseInput} onChangeText={setExcuseInput} placeholder="Write reason, e.g., illness, travel..." placeholderTextColor={Theme.colors.textMuted} multiline numberOfLines={3} />
             <View style={styles.excuseActions}>
@@ -668,6 +690,8 @@ const styles = StyleSheet.create({
   excuseOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'center', alignItems: 'center', padding: Theme.spacing.lg },
   excuseCard: { width: '100%', maxWidth: 380, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', alignItems: 'center' },
   excuseTitle: { color: Theme.colors.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 8 },
+  excuseProgressPill: { backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
+  excuseProgressText: { color: '#EF4444', fontSize: 11, fontWeight: '800' },
   excuseSub: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, textAlign: 'center', marginTop: 6 },
   excuseInputLarge: { width: '100%', backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, color: Theme.colors.textPrimary, fontSize: 13, borderWidth: 1, borderColor: Theme.colors.border, minHeight: 80, textAlignVertical: 'top', marginTop: Theme.spacing.md },
   excuseActions: { flexDirection: 'row', gap: 8, marginTop: Theme.spacing.md, width: '100%' },

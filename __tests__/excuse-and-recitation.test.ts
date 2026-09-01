@@ -11,7 +11,39 @@ jest.mock('expo-sqlite', () => ({
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { computeMissedDays } from '../services/negligence-service';
 import { UstadSessionService } from '../services/ustad-session-service';
-import { getScheduleItem } from '../utils/schedule-calculator';
+import { getScheduleItem, getStartDayAfterPriorFace } from '../utils/schedule-calculator';
+
+describe('getStartDayAfterPriorFace (onboarding prior portion)', () => {
+  it('continues from 9 h2 when the user memorized the first half of page 9', () => {
+    const startDay = getStartDayAfterPriorFace(9, 'h1');
+    expect(startDay).toBe(16);
+    expect(getScheduleItem(startDay!)!.faceNumber).toBe('9 h2');
+  });
+
+  it('continues from 10 h1 when the user memorized the full page 9 or its second half', () => {
+    expect(getStartDayAfterPriorFace(9, null)).toBe(17);
+    expect(getStartDayAfterPriorFace(9, 'h2')).toBe(17);
+    expect(getScheduleItem(17)!.faceNumber).toBe('10 h1');
+  });
+
+  it('keeps the legacy behaviour for whole pages 1 and 2', () => {
+    expect(getStartDayAfterPriorFace(1, null)).toBe(2);
+    expect(getStartDayAfterPriorFace(2, null)).toBe(3);
+  });
+
+  it('treats a half of a whole-page (days 1-2) face as done and moves on', () => {
+    expect(getStartDayAfterPriorFace(1, 'h1')).toBe(2);
+    expect(getStartDayAfterPriorFace(2, 'h2')).toBe(3);
+  });
+
+  it('returns null when the user already memorized the whole Mus-haf', () => {
+    expect(getStartDayAfterPriorFace(604, null)).toBeNull();
+    expect(getStartDayAfterPriorFace(604, 'h2')).toBeNull();
+    expect(getStartDayAfterPriorFace(604, 'h1')).toBe(1206);
+    expect(getStartDayAfterPriorFace(0, null)).toBeNull();
+    expect(getStartDayAfterPriorFace(605, null)).toBeNull();
+  });
+});
 
 describe('computeMissedDays (excuse prompt detection)', () => {
   const TODAY = '2026-08-27';

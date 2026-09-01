@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '../constants/theme';
 import { setUserSetting, getUserSetting, saveDailyProgress } from '../database/db';
-import { isValidLocalDateString, localDateString } from '../utils/schedule-calculator';
+import { isValidLocalDateString, localDateString, getStartDayAfterPriorFace, TOTAL_PROGRAM_DAYS } from '../utils/schedule-calculator';
 import { faceOrdinalForDay, formatFace } from '../utils/face';
 import { RECITERS, ReciterId } from '../services/audio-service';
 import { AudioService } from '../services/audio-service';
@@ -93,6 +93,8 @@ export default function OnboardingScreen() {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [priorMode, setPriorMode] = useState<'fresh' | 'prior'>('fresh');
   const [priorPagesInput, setPriorPagesInput] = useState('');
+  const [priorHalf, setPriorHalf] = useState<'none' | 'h1' | 'h2'>('none');
+  const [showHalfDropdown, setShowHalfDropdown] = useState(false);
   const [selectedReciter, setSelectedReciter] = useState<ReciterId>('qahtani');
   const [playingReciter, setPlayingReciter] = useState<ReciterId | null>(null);
   const [addToCalendarOnboard, setAddToCalendarOnboard] = useState(false);
@@ -184,8 +186,14 @@ export default function OnboardingScreen() {
       await CalendarService.removeUstadSessions();
     }
     if (priorPages > 0) {
-      const startDay = priorPages === 1 ? 2 : 2 * priorPages - 1;
+      const half = priorHalf === 'none' ? null : priorHalf;
+      // The entered face (page or page+half) is already memorized; continue
+      // from the next face in the schedule. Everything before it is marked
+      // done, so yesterday's repetition, ustad recitation, connection and
+      // revision all resolve from the existing schedule data.
+      const startDay = getStartDayAfterPriorFace(priorPages, half) ?? TOTAL_PROGRAM_DAYS + 1;
       await setUserSetting('priorMemorizedPages', String(priorPages));
+      await setUserSetting('priorMemorizedFace', half ? `${priorPages} ${half}` : String(priorPages));
       for (let d = 1; d < startDay; d++) {
         await saveDailyProgress({ dayNumber: d, isComplete: 1, completedDate: startDate });
       }
@@ -440,13 +448,49 @@ export default function OnboardingScreen() {
                   placeholderTextColor={Theme.colors.textMuted}
                   keyboardType="number-pad"
                 />
+                <Text style={styles.fieldLabel}>Half of that page (optional)</Text>
+                <View>
+                  <TouchableOpacity
+                    style={styles.dropdownBtn}
+                    onPress={() => setShowHalfDropdown((v) => !v)}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.dropdownBtnText}>
+                      {priorHalf === 'none' ? 'Full page' : priorHalf === 'h1' ? 'First half (h1)' : 'Second half (h2)'}
+                    </Text>
+                    <Ionicons name={showHalfDropdown ? 'chevron-up' : 'chevron-down'} size={16} color={Theme.colors.textMuted} />
+                  </TouchableOpacity>
+                  {showHalfDropdown && (
+                    <View style={styles.dropdownList}>
+                      {([
+                        { key: 'none', label: 'Full page' },
+                        { key: 'h1', label: 'First half (h1)' },
+                        { key: 'h2', label: 'Second half (h2)' },
+                      ] as const).map((opt) => (
+                        <TouchableOpacity
+                          key={opt.key}
+                          style={[styles.dropdownItem, priorHalf === opt.key && styles.dropdownItemActive]}
+                          onPress={() => {
+                            setPriorHalf(opt.key);
+                            setShowHalfDropdown(false);
+                          }}
+                        >
+                          <Text style={[styles.dropdownItemText, priorHalf === opt.key && styles.dropdownItemTextActive]}>{opt.label}</Text>
+                          {priorHalf === opt.key && <Ionicons name="checkmark" size={16} color={Theme.colors.accentGold} />}
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  )}
+                </View>
                 <Text style={styles.hint}>
                   {(() => {
                     const p = parseInt(priorPagesInput, 10);
                     if (isNaN(p) || p < 1 || p > 604) return 'Enter the page you memorized up to. Everything before it is marked done.';
-                    const startDay = p === 1 ? 2 : 2 * p - 1;
-                    const face = formatFace(faceOrdinalForDay(Math.min(startDay, 1206)));
-                    return `You will continue from Day ${startDay} — Face ${face}. Days 1 to ${startDay - 1} will be marked complete.`;
+                    const half = priorHalf === 'none' ? null : priorHalf;
+                    const lookedUp = getStartDayAfterPriorFace(p, half);
+                    if (!lookedUp) return `Page ${p} is the end of the Mus-haf — the whole program will be marked complete.`;
+                    const face = formatFace(faceOrdinalForDay(Math.min(lookedUp, 1206)));
+                    return `You will continue from Day ${lookedUp} — Face ${face}. Days 1 to ${lookedUp - 1} will be marked complete.`;
                   })()}
                 </Text>
               </>
