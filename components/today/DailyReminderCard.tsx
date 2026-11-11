@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
   },
   label: {
     color: Theme.colors.accentGold,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.2,
     textTransform: 'uppercase',

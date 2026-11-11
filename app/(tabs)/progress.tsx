@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Theme } from '../../constants/theme';
 import { getAllCompletedDaysWithDates, getUserSetting, loadScheduleDirection } from '../../database/db';
-import { calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS, localDateString, parseLocalDateString, daysBetweenDates, getSchedule, ScheduleDirection } from '../../utils/schedule-calculator';
+import { calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS, localDateString, parseLocalDateString, daysBetweenDates, getSchedule, ScheduleDirection, programDateString, parseFajrMinutes } from '../../utils/schedule-calculator';
 import { SURAH_LIST } from '../../data/surah-metadata';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressRing } from '../../components/progress/ProgressRing';
@@ -49,7 +49,11 @@ export default function ProgressScreen() {
     const day = calculateCurrentDay(nums);
     setCurrentDay(day);
 
-    const streak = calculateStreak(completed.map((c) => c.completedDate).filter((d) => d.length > 0));
+    const fajrMinutes = parseFajrMinutes(await getUserSetting('fajrTime', '05:00'));
+    const streak = calculateStreak(
+      completed.map((c) => c.completedDate).filter((d) => d.length > 0),
+      programDateString(fajrMinutes)
+    );
     setStreakData(streak);
 
     const savedUstadMode = await getUserSetting('ustadMode', 'none');
@@ -242,7 +246,7 @@ export default function ProgressScreen() {
                   <View style={styles.surahInfo}>
                     <View style={styles.surahNameRow}>
                       <Text style={styles.surahName}>{surah.transliteration}</Text>
-                      {isCompleted ? <Ionicons name="checkmark-circle" size={16} color="#2DD4A0" /> : null}
+                      {isCompleted ? <Ionicons name="checkmark-circle" size={16} color="#3DD6A3" /> : null}
                     </View>
                     <Text style={styles.surahMeta}>{surah.type} • {surah.totalVerses} Verses{total ? ` • ${done}/${total} faces` : ' • Not in main schedule'}</Text>
                     {total > 0 ? (
@@ -273,7 +277,7 @@ export default function ProgressScreen() {
               logEntries.map((e) => (
                 <View key={e.key} style={[styles.logRow, e.attended ? styles.logRowAttended : styles.logRowMissed]}>
                   <View style={[styles.logIconWrap, e.attended ? styles.logIconAttended : styles.logIconMissed]}>
-                    <Ionicons name={e.attended ? 'checkmark' : 'close'} size={16} color={e.attended ? Theme.colors.bgDark : '#F26D6D'} />
+                    <Ionicons name={e.attended ? 'checkmark' : 'close'} size={16} color={e.attended ? Theme.colors.bgDark : '#F58282'} />
                   </View>
                   <View style={styles.logInfo}>
                     {e.attended && e.session ? (
@@ -377,11 +381,11 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   logRowAttended: {
-    borderColor: 'rgba(45,212,160,0.3)',
+    borderColor: 'rgba(61,214,163,0.3)',
   },
   logRowMissed: {
-    borderColor: 'rgba(242,109,109,0.3)',
-    backgroundColor: 'rgba(242,109,109,0.05)',
+    borderColor: 'rgba(245,130,130,0.3)',
+    backgroundColor: 'rgba(245,130,130,0.05)',
   },
   logIconWrap: {
     width: 26,
@@ -391,12 +395,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logIconAttended: {
-    backgroundColor: '#2DD4A0',
+    backgroundColor: '#3DD6A3',
   },
   logIconMissed: {
-    backgroundColor: 'rgba(242,109,109,0.15)',
+    backgroundColor: 'rgba(245,130,130,0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(242,109,109,0.4)',
+    borderColor: 'rgba(245,130,130,0.4)',
   },
   logInfo: {
     flex: 1,
@@ -412,14 +416,14 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logMissedText: {
-    color: '#F26D6D',
+    color: '#F58282',
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 17,
   },
   logDate: {
     color: Theme.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 3,
   },
   logEmptyBox: {
@@ -512,11 +516,11 @@ const styles = StyleSheet.create({
     borderColor: Theme.colors.border,
   },
   surahRowCompleted: {
-    borderColor: 'rgba(45,212,160,0.35)',
-    backgroundColor: 'rgba(45,212,160,0.06)',
+    borderColor: 'rgba(61,214,163,0.35)',
+    backgroundColor: 'rgba(61,214,163,0.06)',
   },
   surahRowStarted: {
-    borderColor: 'rgba(221,178,82,0.25)',
+    borderColor: 'rgba(227,185,91,0.25)',
   },
   surahNumberBadge: {
     width: 36,
@@ -528,7 +532,7 @@ const styles = StyleSheet.create({
     marginRight: Theme.spacing.md,
   },
   surahBadgeDone: {
-    backgroundColor: '#2DD4A0',
+    backgroundColor: '#3DD6A3',
   },
   surahNumberText: {
     color: Theme.colors.accentGold,
@@ -569,7 +573,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   miniBarDone: {
-    backgroundColor: '#2DD4A0',
+    backgroundColor: '#3DD6A3',
   },
   surahRight: {
     alignItems: 'flex-end',
@@ -587,6 +591,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   surahPctDone: {
-    color: '#2DD4A0',
+    color: '#3DD6A3',
   },
 });

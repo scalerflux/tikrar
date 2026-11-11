@@ -19,7 +19,8 @@ interface DayHeaderProps {
 
 function formatFace(face: string): string {
   if (!face) return '—';
-  return face.replace('h1', ' · 1st half').replace('h2', ' · 2nd half');
+  if (face.includes('-')) return `Pages ${face}`;
+  return `Page ${face.replace('h1', '· 1st half').replace('h2', '· 2nd half')}`;
 }
 
 export const DayHeader: React.FC<DayHeaderProps> = ({
@@ -71,7 +72,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
         <View style={styles.metaRow}>
           <View style={styles.metaChip}>
             <Ionicons name="document-text-outline" size={12} color={Theme.colors.textSecondary} />
-            <Text style={styles.metaText}>Face {formatFace(faceNumber)}</Text>
+            <Text style={styles.metaText}>{formatFace(faceNumber)}</Text>
           </View>
           <View style={styles.metaChip}>
             <Ionicons name="sync-outline" size={12} color={Theme.colors.textSecondary} />
@@ -166,7 +167,7 @@ const styles = StyleSheet.create({
     borderRadius: 120,
     right: -90,
     top: -110,
-    backgroundColor: 'rgba(221,178,82,0.10)',
+    backgroundColor: 'rgba(227,185,91,0.10)',
   },
   heroTopRow: {
     flexDirection: 'row',

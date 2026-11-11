@@ -411,6 +411,13 @@ export default function SettingsScreen() {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
+          // Reminders and calendar events live outside the app's storage, so
+          // remove them too or they keep firing for a program that is gone.
+          const hadCalendarEvents = (await getUserSetting('addToCalendar', 'false')) === 'true';
+          await NotificationService.cancelDailyReminder().catch(() => {});
+          await NotificationService.cancelSessionReminder().catch(() => {});
+          if (hadCalendarEvents) await CalendarService.removeUstadSessions().catch(() => {});
+          await AudioService.stopAudio().catch(() => {});
           await BackupService.clearAllData();
           setScheduleDirection('forward');
           setBackupStatus('All data cleared');
@@ -669,7 +676,7 @@ export default function SettingsScreen() {
 
           {ustadMode === 'custom' && (
             <TouchableOpacity style={styles.removeUstadBtn} onPress={handleRemoveUstad} activeOpacity={0.7}>
-              <Ionicons name="person-remove-outline" size={16} color="#F26D6D" />
+              <Ionicons name="person-remove-outline" size={16} color="#F58282" />
               <Text style={styles.removeUstadBtnText}>Remove Ustad</Text>
             </TouchableOpacity>
           )}
@@ -762,7 +769,7 @@ export default function SettingsScreen() {
           />
           {backupStatus ? <Text style={styles.backupStatus}>{backupStatus}</Text> : null}
           <TouchableOpacity style={styles.clearBtn} onPress={handleClearData} activeOpacity={0.7}>
-            <Ionicons name="trash-outline" size={16} color="#F26D6D" />
+            <Ionicons name="trash-outline" size={16} color="#F58282" />
             <Text style={styles.clearBtnText}>Clear All Data</Text>
           </TouchableOpacity>
         </View>
@@ -959,7 +966,7 @@ const styles = StyleSheet.create({
     gap: 6,
     marginTop: Theme.spacing.md,
     paddingVertical: 10,
-    backgroundColor: 'rgba(221,178,82, 0.1)',
+    backgroundColor: 'rgba(227,185,91, 0.1)',
     borderRadius: Theme.borderRadius.md,
     borderWidth: 1,
     borderColor: Theme.colors.accentGoldBorder,
@@ -976,7 +983,7 @@ const styles = StyleSheet.create({
   },
   dateInput: {
     flex: 1,
-    backgroundColor: 'rgba(5,12,24,0.55)',
+    backgroundColor: 'rgba(4,9,18,0.5)',
     borderRadius: Theme.borderRadius.md,
     paddingHorizontal: Theme.spacing.md,
     paddingVertical: 10,
@@ -1012,7 +1019,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(5,12,24,0.55)',
+    backgroundColor: 'rgba(4,9,18,0.5)',
     borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.md,
     borderWidth: 1,
@@ -1020,7 +1027,7 @@ const styles = StyleSheet.create({
   },
   reciterBoxSelected: {
     borderColor: Theme.colors.accentGoldBorder,
-    backgroundColor: 'rgba(221,178,82,0.08)',
+    backgroundColor: 'rgba(227,185,91,0.08)',
   },
   reciterName: {
     color: Theme.colors.textSecondary,
@@ -1030,16 +1037,12 @@ const styles = StyleSheet.create({
   reciterNameSelected: {
     color: Theme.colors.textPrimary,
   },
-  reciterPlayBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(221,178,82,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
+  reciterPlayBtn: { width: 32, height: 32, borderRadius: 16, backgroundColor: 'rgba(227,185,91,0.12)', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   reciterPlayBtnActive: { backgroundColor: Theme.colors.accentGoldMuted },
-  sessionNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: 8 },
+  sessionNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(4,9,18,0.5)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: 8 },
   sessionNotifTitle: { color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '700' },
-  sessionNotifSub: { color: Theme.colors.textSecondary, fontSize: 11, marginTop: 2 },
-  countryPill: { backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.border },
-  countryPillActive: { backgroundColor: Theme.colors.accentGoldMuted, borderColor: Theme.colors.accentGold },
-  countryPillText: { color: Theme.colors.textSecondary, fontSize: 11, fontWeight: '600' },
-  countryPillTextActive: { color: Theme.colors.accentGold },
-  dropdownBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(5,12,24,0.55)', borderWidth: 1, borderColor: Theme.colors.border, borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 12 },
+  sessionNotifSub: { color: Theme.colors.textSecondary, fontSize: 12, marginTop: 2 },
+  dropdownBtn: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'rgba(4,9,18,0.5)', borderWidth: 1, borderColor: Theme.colors.border, borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 12 },
   dropdownBtnText: { color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '600' },
   dropdownList: { backgroundColor: Theme.colors.bgCard, borderWidth: 1, borderColor: Theme.colors.border, borderRadius: Theme.borderRadius.md, marginTop: 6, overflow: 'hidden' },
   dropdownSearchRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: Theme.spacing.md, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Theme.colors.border },
@@ -1053,7 +1056,7 @@ const styles = StyleSheet.create({
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: Theme.spacing.md, marginBottom: 6 },
   fieldLabel: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '800' },
   pickerGroup: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
-  summaryStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(221,178,82,0.08)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 12, marginTop: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
+  summaryStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(227,185,91,0.08)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 12, marginTop: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   summaryText: { flex: 1, color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   weekdayChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: 'rgba(255,255,255,0.04)' },
@@ -1082,7 +1085,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   backupBtnSecondary: {
-    backgroundColor: 'rgba(221,178,82,0.1)',
+    backgroundColor: 'rgba(227,185,91,0.1)',
     borderWidth: 1,
     borderColor: Theme.colors.accentGoldBorder,
   },
@@ -1092,7 +1095,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   importInput: {
-    backgroundColor: 'rgba(5,12,24,0.55)',
+    backgroundColor: 'rgba(4,9,18,0.5)',
     borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.sm,
     color: Theme.colors.textPrimary,
@@ -1118,11 +1121,11 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: Theme.borderRadius.md,
     borderWidth: 1,
-    borderColor: 'rgba(242,109,109,0.3)',
-    backgroundColor: 'rgba(242,109,109,0.06)',
+    borderColor: 'rgba(245,130,130,0.3)',
+    backgroundColor: 'rgba(245,130,130,0.06)',
   },
   clearBtnText: {
-    color: '#F26D6D',
+    color: '#F58282',
     fontSize: 13,
     fontWeight: '700',
   },
@@ -1148,13 +1151,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     flex: 1,
   },
-  ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(221,178,82,0.08)' },
+  ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(227,185,91,0.08)' },
   ustadCardEnhanced: { backgroundColor: 'rgba(10,22,40,0.7)', borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1.5, borderColor: Theme.colors.accentGoldBorder, marginTop: 12 },
-  removeUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingVertical: 13, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', backgroundColor: 'rgba(242,109,109,0.06)' },
-  removeUstadBtnText: { color: '#F26D6D', fontSize: 13, fontWeight: '700' },
+  removeUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingVertical: 13, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: 'rgba(245,130,130,0.3)', backgroundColor: 'rgba(245,130,130,0.06)' },
+  removeUstadBtnText: { color: '#F58282', fontSize: 13, fontWeight: '700' },
   reciterSelectArea: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingVertical: 4 },
   ustadHeaderEnhanced: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 6 },
-  ustadTitleEnhanced: { flex: 1, color: Theme.colors.textPrimary, fontSize: 16, fontWeight: '900' },
+  ustadTitleEnhanced: { flex: 1, color: Theme.colors.textPrimary, fontSize: 16, fontWeight: '800' },
   ustadSubEnhanced: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 14 },
   calendarRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: Theme.spacing.md, paddingTop: Theme.spacing.md, borderTopWidth: 1, borderTopColor: Theme.colors.border },
   calendarLabel: { color: Theme.colors.textPrimary, fontSize: 14, fontWeight: '700' },

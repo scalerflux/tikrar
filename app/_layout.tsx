@@ -1,4 +1,3 @@
-import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect, useState } from 'react';
@@ -22,9 +21,9 @@ try {
 } catch (e) {}
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+  // The app uses system fonts only, so there is nothing to wait for.
+  const loaded = true;
+  const error = null;
   const router = useRouter();
   const [hasCheckedOnboarding, setHasCheckedOnboarding] = useState(false);
 

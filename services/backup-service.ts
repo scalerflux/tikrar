@@ -4,7 +4,7 @@ import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Platform } from 'react-native';
 import { getDb, DailyProgressRow } from '../database/db';
-import { isValidLocalDateString, TOTAL_PROGRAM_DAYS } from '../utils/schedule-calculator';
+import { isValidLocalDateString, TOTAL_PROGRAM_DAYS, SCHEDULE_DIRECTION_KEY } from '../utils/schedule-calculator';
 
 export interface BackupPayload {
   version: 1;
@@ -114,6 +114,13 @@ export class BackupService {
       (parsed.settings !== undefined && !isRecord(parsed.settings))
     ) {
       throw new Error('Invalid backup format');
+    }
+
+    // Backups made before the starting point existed are forward programs.
+    // Write that explicitly so they are not read with this device's setting.
+    parsed.settings = { ...(parsed.settings || {}) };
+    if (parsed.settings[SCHEDULE_DIRECTION_KEY] === undefined) {
+      parsed.settings[SCHEDULE_DIRECTION_KEY] = 'forward';
     }
 
     const db = await getDb();

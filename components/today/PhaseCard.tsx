@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   completedCard: {
     borderColor: Theme.colors.successGreenBorder,
-    backgroundColor: 'rgba(45,212,160,0.05)',
+    backgroundColor: 'rgba(61,214,163,0.05)',
   },
   expandedCard: {
     borderColor: Theme.colors.accentGoldBorder,
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   phaseLabel: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     color: Theme.colors.accentGold,
     letterSpacing: 1,

@@ -237,7 +237,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="trash-outline" size={16} color="#F26D6D" />
+                  <Ionicons name="trash-outline" size={16} color="#F58282" />
                 </TouchableOpacity>
               </View>
             );
@@ -250,7 +250,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(5,12,24,0.55)',
+    backgroundColor: 'rgba(4,9,18,0.5)',
     borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.md,
     marginTop: Theme.spacing.sm,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   recordingActiveBtn: {
     backgroundColor: '#DC2626',
     borderWidth: 1,
-    borderColor: '#F26D6D',
+    borderColor: '#F58282',
   },
   recordBtnText: {
     color: Theme.colors.textPrimary,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   recordBtnDone: {
-    backgroundColor: 'rgba(45,212,160,0.15)',
+    backgroundColor: 'rgba(61,214,163,0.15)',
     borderWidth: 1,
     borderColor: Theme.colors.successGreen,
   },
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
   },
   countSub: {
     color: Theme.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '600',
     textTransform: 'uppercase',
   },
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   },
   savedHeader: {
     color: Theme.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 2,
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   recordingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(5,12,24,0.55)',
+    backgroundColor: 'rgba(4,9,18,0.5)',
     borderRadius: Theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: Theme.colors.border,

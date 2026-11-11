@@ -8,7 +8,7 @@ import { PhaseCard } from '../../components/today/PhaseCard';
 import { AudioPlayerComponent } from '../../components/today/AudioPlayerComponent';
 import { VoiceRecorderComponent } from '../../components/today/VoiceRecorderComponent';
 import { TafseerViewComponent } from '../../components/today/TafseerViewComponent';
-import { getScheduleItem, getDisplaySurahName, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, ScheduleDirection, localDateString } from '../../utils/schedule-calculator';
+import { getScheduleItem, getDisplaySurahName, getPortionKey, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, ScheduleDirection, localDateString, programDateString, parseFajrMinutes } from '../../utils/schedule-calculator';
 import { getReminderForDay, DailyReminder } from '../../utils/reminders';
 import { DailyReminderCard } from '../../components/today/DailyReminderCard';
 import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting, loadScheduleDirection } from '../../database/db';
@@ -90,11 +90,14 @@ export default function TodayScreen() {
   const [ustadSessionCount, setUstadSessionCount] = useState(0);
   const [ustadAttended, setUstadAttended] = useState(false);
   const [currentDateStr, setCurrentDateStr] = useState(localDateString());
-  const [timeLeftColor, setTimeLeftColor] = useState('#2DD4A0');
+  const [timeLeftColor, setTimeLeftColor] = useState('#3DD6A3');
   const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const fajrMinutesRef = useRef(300);
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const confettiSpin = useRef(new Animated.Value(0)).current;
+  // The program day runs Fajr to Fajr, so "today" is the program date, not
+  // the calendar date. Before Fajr it is still yesterday's portion.
+  const programToday = () => programDateString(fajrMinutesRef.current);
   const lastDateRef = useRef(localDateString());
   const hasLoadedRef = useRef(false);
   // Latest progress row, so quick successive taps never write a stale copy.
@@ -113,13 +116,13 @@ export default function TodayScreen() {
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    const color = diff > 6 * 3600000 ? '#2DD4A0' : diff > 3600000 ? '#F5A524' : '#F26D6D';
+    const color = diff > 6 * 3600000 ? '#3DD6A3' : diff > 3600000 ? '#F5AE3D' : '#F58282';
     return { text: `${h}h ${m}m ${s}s`, color };
   };
 
   useFocusEffect(
     useCallback(() => {
-      lastDateRef.current = localDateString();
+      lastDateRef.current = programToday();
       loadTodayData();
       const info = getTimeUntilFajr();
       setTimeLeft(info.text);
@@ -128,7 +131,7 @@ export default function TodayScreen() {
         const info2 = getTimeUntilFajr();
         setTimeLeft(info2.text);
         setTimeLeftColor(info2.color);
-        const d = localDateString();
+        const d = programToday();
         if (d !== lastDateRef.current) {
           lastDateRef.current = d;
           setCurrentDateStr(d);
@@ -158,15 +161,11 @@ export default function TodayScreen() {
       // Only block the screen on the first load. Later refreshes (tab focus,
       // date rollover) update in place so open cards and audio are kept.
       if (!hasLoadedRef.current) setLoading(true);
-      const today = localDateString();
       setDirection(await loadScheduleDirection());
-      const savedFajrTime = await getUserSetting('fajrTime', '05:00');
-      const fajrMatch = savedFajrTime.match(/^(\d{2}):(\d{2})$/);
-      if (fajrMatch) {
-        const hours = Number(fajrMatch[1]);
-        const minutes = Number(fajrMatch[2]);
-        if (hours < 24 && minutes < 60) fajrMinutesRef.current = hours * 60 + minutes;
-      }
+      fajrMinutesRef.current = parseFajrMinutes(await getUserSetting('fajrTime', '05:00'));
+      const today = programToday();
+      lastDateRef.current = today;
+      setCurrentDateStr(today);
       const completedWithDates = await getAllCompletedDaysWithDates();
       const completedDayNumbers = completedWithDates.map((c) => c.dayNumber);
       const completedDateStrings = completedWithDates
@@ -191,7 +190,7 @@ export default function TodayScreen() {
       const prog = await getDailyProgress(day);
       setProgress(prog);
 
-      const streakInfo = calculateStreak(completedDateStrings);
+      const streakInfo = calculateStreak(completedDateStrings, today);
       setStreak(streakInfo.currentStreak);
 
       const savedUstadMode = await getUserSetting('ustadMode', 'none');
@@ -220,7 +219,7 @@ export default function TodayScreen() {
       setNegligenceCount(count);
 
       const nextItem = getScheduleItem(day + 1);
-      if (nextItem) TranslationService.prefetchFace(nextItem.faceNumber);
+      if (nextItem) TranslationService.prefetchFace(getPortionKey(nextItem));
 
       const confirmed = await NegligenceService.getLastConfirmed();
       if (confirmed && confirmed.date === today) {
@@ -316,6 +315,9 @@ export default function TodayScreen() {
     (progress.phaseTafseer === 1 ? 1 : 0) + (progress.phaseRecording === 1 ? 1 : 0) +
     (hasConnection && progress.phaseConnection === 1 ? 1 : 0) + (hasRevision && progress.phaseRevision === 1 ? 1 : 0);
 
+  // Backward ranges name surahs and faces in memorization order, not pages.
+  const rangePrefix = direction === 'backward' ? '' : 'Pages ';
+
   const todayDayOfWeek = new Date().getDay();
   const ustadDays = getUstadSessionDays(ustadName, customWeekdays);
   // Day 1 has no previous face to recite to the ustad, so the card stays hidden.
@@ -333,7 +335,7 @@ export default function TodayScreen() {
       Alert.alert('Ustad session', 'Mark your recitation attendance before confirming.');
       return;
     }
-    const today = localDateString();
+    const today = programToday();
     const saved = await saveDailyProgress({ ...progress, isComplete: 1, completedDate: today } as any);
     setProgress(saved);
     await NegligenceService.setLastConfirmed(currentDay, today);
@@ -357,7 +359,7 @@ export default function TodayScreen() {
       setExcuseInput('');
       return;
     }
-    await NegligenceService.setLastAppOpen(localDateString());
+    await NegligenceService.setLastAppOpen(programToday());
     setShowExcusePrompt(false);
     setPendingExcuse(null);
     setExcuseInput('');
@@ -454,7 +456,7 @@ export default function TodayScreen() {
 
         <View style={styles.negligenceRow}>
           <View style={styles.negligenceBox}>
-            <View style={styles.negligenceHeader}><Ionicons name="warning-outline" size={14} color="#F26D6D" /><Text style={styles.negligenceTitle}>Negligence</Text></View>
+            <View style={styles.negligenceHeader}><Ionicons name="warning-outline" size={14} color="#F58282" /><Text style={styles.negligenceTitle}>Negligence</Text></View>
             <Text style={styles.negligenceCount}>{negligenceCount}</Text>
             <Text style={styles.negligenceSub}>without excuse</Text>
           </View>
@@ -514,7 +516,7 @@ export default function TodayScreen() {
         >
           <AudioPlayerComponent
             surahName={scheduleItem.surahName}
-            faceNumber={scheduleItem.faceNumber}
+            faceNumber={getPortionKey(scheduleItem)}
             onCompleted3Times={() => { completePhase('phaseListening'); }}
           />
         </PhaseCard>
@@ -527,7 +529,7 @@ export default function TodayScreen() {
           isCompleted={progress.phaseTafseer === 1}
           onToggleComplete={() => togglePhase('phaseTafseer')}
         >
-          <TafseerViewComponent surahName={scheduleItem.surahName} faceNumber={scheduleItem.faceNumber} />
+          <TafseerViewComponent surahName={scheduleItem.surahName} faceNumber={getPortionKey(scheduleItem)} />
         </PhaseCard>
 
         <PhaseCard
@@ -545,14 +547,14 @@ export default function TodayScreen() {
           <PhaseCard
             phaseNumber={5}
             title="30-Day Connection (Rabt)"
-            subtitle={`Recite Pages ${formatRangeText(scheduleItem.connectionRange)}`}
+            subtitle={`Recite ${rangePrefix}${formatRangeText(scheduleItem.connectionRange)}`}
             iconName="link-outline"
             isCompleted={progress.phaseConnection === 1}
             onToggleComplete={() => togglePhase('phaseConnection')}
           >
             <View style={styles.cardDetailBox}>
               <Text style={styles.detailTitle}>Pages to Recite (Previous 30 Days):</Text>
-              <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.connectionRange)}</Text>
+              <Text style={styles.detailValue}>{rangePrefix}{formatRangeText(scheduleItem.connectionRange)}</Text>
               <Text style={styles.detailInstruction}>Recite this entire 30-day perfected window once from memory without looking at the Mus-haf.{describePortionDays(scheduleItem.connectionDays)}</Text>
             </View>
           </PhaseCard>
@@ -573,7 +575,7 @@ export default function TodayScreen() {
           <PhaseCard
             phaseNumber={6}
             title="Old Memorization Revision"
-            subtitle={`Tour #${scheduleItem.tourNumber} • Pages ${formatRangeText(scheduleItem.revisionRange)}`}
+            subtitle={`Tour #${scheduleItem.tourNumber} • ${rangePrefix}${formatRangeText(scheduleItem.revisionRange)}`}
             iconName="refresh-outline"
             isCompleted={progress.phaseRevision === 1}
             onToggleComplete={() => togglePhase('phaseRevision')}
@@ -583,7 +585,7 @@ export default function TodayScreen() {
               <View style={styles.tourPillRow}>
                 <View style={styles.tourPill}><Text style={styles.tourPillText}>Tour #{scheduleItem.tourNumber}</Text></View>
               </View>
-              <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.revisionRange)}</Text>
+              <Text style={styles.detailValue}>{rangePrefix}{formatRangeText(scheduleItem.revisionRange)}</Text>
               <Text style={styles.detailInstruction}>Recite this assigned slice from memory without looking at the Mus-haf. You will complete your entire old memorization every 6 days.{describePortionDays(scheduleItem.revisionDays)}</Text>
             </View>
           </PhaseCard>
@@ -646,7 +648,7 @@ export default function TodayScreen() {
       <Modal visible={showExcusePrompt} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.excuseOverlay}>
           <View style={styles.excuseCard}>
-            <Ionicons name="alert-circle-outline" size={32} color="#F26D6D" />
+            <Ionicons name="alert-circle-outline" size={32} color="#F58282" />
             <Text style={styles.excuseTitle}>Missed Day Detected</Text>
             {excuseTotal > 1 && (
               <View style={styles.excuseProgressPill}>
@@ -675,44 +677,37 @@ const styles = StyleSheet.create({
   sectionHeader: { color: Theme.colors.textPrimary, fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
   sectionCount: { backgroundColor: Theme.colors.accentGoldMuted, borderRadius: Theme.borderRadius.full, paddingHorizontal: 10, paddingVertical: 4 },
   sectionCountText: { color: Theme.colors.accentGold, fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
-  cardDetailBox: { backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
+  cardDetailBox: { backgroundColor: 'rgba(4,9,18,0.5)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
   detailTitle: { color: Theme.colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
   detailValue: { color: Theme.colors.accentGold, fontSize: 17, fontWeight: '700', marginVertical: 6 },
   detailInstruction: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 20, marginTop: 4 },
   detailRestText: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 4, fontStyle: 'italic' },
   tourPillRow: { flexDirection: 'row', marginTop: 4, marginBottom: 2 },
   tourPill: { backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Theme.borderRadius.sm, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
-  tourPillText: { color: Theme.colors.accentGold, fontSize: 11, fontWeight: '700' },
+  tourPillText: { color: Theme.colors.accentGold, fontSize: 12, fontWeight: '700' },
   ustadTodayCard: { backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, marginBottom: Theme.spacing.md },
   ustadTodayHeader: { flexDirection: 'row', gap: 8, alignItems: 'center', marginBottom: 6 },
   ustadTodayTitle: { color: Theme.colors.accentGold, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 },
-  ustadTodayTeacher: { color: Theme.colors.textPrimary, fontSize: 14, fontWeight: '800' },
-  ustadTodayTiming: { color: Theme.colors.textSecondary, fontSize: 12, marginTop: 2 },
-  ustadTodayFaceBox: { backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: Theme.spacing.sm },
+  ustadTodayFaceBox: { backgroundColor: 'rgba(4,9,18,0.5)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: Theme.spacing.sm },
   ustadTodayLabel: { color: Theme.colors.textSecondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   ustadTodayFace: { color: Theme.colors.accentGold, fontSize: 15, fontWeight: '800', marginTop: 4 },
-  ustadTodayHint: { color: Theme.colors.textMuted, fontSize: 11, lineHeight: 16, marginTop: 6 },
+  ustadTodayHint: { color: Theme.colors.textMuted, fontSize: 12, lineHeight: 16, marginTop: 6 },
   ustadSessionRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: Theme.spacing.sm },
-  ustadSessionText: { color: Theme.colors.textMuted, fontSize: 11, fontWeight: '600' },
-  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 8, borderWidth: 1, borderColor: Theme.colors.border, marginBottom: Theme.spacing.sm },
-  dateText: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '600' },
-  dot: { color: Theme.colors.textMuted, fontSize: 12 },
-  dayBadgeSmall: { marginLeft: 'auto', backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
-  dayBadgeSmallText: { color: Theme.colors.accentGold, fontSize: 11, fontWeight: '800' },
+  ustadSessionText: { color: Theme.colors.textMuted, fontSize: 12, fontWeight: '600' },
   negligenceRow: { flexDirection: 'row', gap: 10, marginBottom: Theme.spacing.md },
-  negligenceBox: { flex: 0.75, backgroundColor: 'rgba(242,109,109,0.06)', borderRadius: Theme.borderRadius.lg, padding: 14, borderWidth: 1, borderColor: 'rgba(242,109,109,0.22)', alignItems: 'center', justifyContent: 'center' },
+  negligenceBox: { flex: 0.75, backgroundColor: 'rgba(245,130,130,0.06)', borderRadius: Theme.borderRadius.lg, padding: 14, borderWidth: 1, borderColor: 'rgba(245,130,130,0.22)', alignItems: 'center', justifyContent: 'center' },
   negligenceHeader: { flexDirection: 'row', gap: 4, alignItems: 'center' },
-  negligenceTitle: { color: '#F26D6D', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
-  negligenceTitleGold: { color: Theme.colors.accentGold, fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
-  negligenceCount: { color: '#F26D6D', fontSize: 30, fontWeight: '800', marginTop: 4, letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
-  negligenceSub: { color: Theme.colors.textSecondary, fontSize: 10, textAlign: 'center', marginTop: 2 },
+  negligenceTitle: { color: '#F58282', fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  negligenceTitleGold: { color: Theme.colors.accentGold, fontSize: 11, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  negligenceCount: { color: '#F58282', fontSize: 30, fontWeight: '800', marginTop: 4, letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
+  negligenceSub: { color: Theme.colors.textSecondary, fontSize: 12, textAlign: 'center', marginTop: 2 },
   excuseBox: { flex: 1.3, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: 14, borderWidth: 1, borderColor: Theme.colors.border },
   excuseHint: { color: Theme.colors.textMuted, fontSize: 11.5, lineHeight: 16, marginTop: 8 },
   excuseInlineList: { marginTop: 6, gap: 4 },
-  excuseInlineItem: { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 5, borderWidth: 1, borderColor: Theme.colors.border },
+  excuseInlineItem: { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: 'rgba(4,9,18,0.5)', borderRadius: Theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 5, borderWidth: 1, borderColor: Theme.colors.border },
   excuseInlineText: { flex: 1, color: Theme.colors.textSecondary, fontSize: 11 },
-  excuseMore: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 2, textAlign: 'center' },
-  attendanceBtn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(221,178,82,0.1)', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, paddingVertical: 12, borderRadius: Theme.borderRadius.md, marginTop: Theme.spacing.md },
+  excuseMore: { color: Theme.colors.textMuted, fontSize: 12, marginTop: 2, textAlign: 'center' },
+  attendanceBtn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(227,185,91,0.1)', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, paddingVertical: 12, borderRadius: Theme.borderRadius.md, marginTop: Theme.spacing.md },
   attendanceBtnDone: { backgroundColor: Theme.colors.successGreen, borderColor: Theme.colors.successGreen },
   attendanceBtnText: { color: Theme.colors.accentGold, fontSize: 13, fontWeight: '800' },
   attendanceBtnTextDone: { color: Theme.colors.bgDark },
@@ -721,27 +716,26 @@ const styles = StyleSheet.create({
   confirmBtnText: { color: Theme.colors.bgDark, fontSize: 16, fontWeight: '800' },
   confirmBtnTextDisabled: { color: Theme.colors.textMuted },
   confirmHint: { color: Theme.colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: 10 },
-  celebrationIconWrap: { width: 72, height: 72, borderRadius: 36, backgroundColor: Theme.colors.accentGoldMuted, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   celebrationConfetti: { fontSize: 44, marginBottom: 4 },
-  celebrationBigTick: { width: 84, height: 84, borderRadius: 42, backgroundColor: Theme.colors.successGreen, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, shadowColor: '#2DD4A0', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  celebrationBigTick: { width: 84, height: 84, borderRadius: 42, backgroundColor: Theme.colors.successGreen, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, shadowColor: '#3DD6A3', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
   celebrationTitle: { color: Theme.colors.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: -0.4 },
   celebrationSubtitle: { color: Theme.colors.textSecondary, fontSize: 14, lineHeight: 22, textAlign: 'center', marginTop: 8 },
   celebrationBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Theme.colors.accentGold, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, marginTop: Theme.spacing.md },
   celebrationBadgeText: { color: Theme.colors.bgDark, fontSize: 12, fontWeight: '800' },
-  celebrationHint: { color: Theme.colors.textMuted, fontSize: 11, marginTop: 10, textAlign: 'center' },
+  celebrationHint: { color: Theme.colors.textMuted, fontSize: 12, marginTop: 10, textAlign: 'center' },
   celebrationScreen: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: Theme.spacing.xl },
   celebrationUnlockBox: { flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: Theme.spacing.lg },
   celebrationUnlockText: { color: Theme.colors.textMuted, fontSize: 12, fontWeight: '600' },
   excuseOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'center', alignItems: 'center', padding: Theme.spacing.lg },
-  excuseCard: { width: '100%', maxWidth: 380, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', alignItems: 'center' },
+  excuseCard: { width: '100%', maxWidth: 380, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1, borderColor: 'rgba(245,130,130,0.3)', alignItems: 'center' },
   excuseTitle: { color: Theme.colors.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 8 },
-  excuseProgressPill: { backgroundColor: 'rgba(242,109,109,0.12)', borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
-  excuseProgressText: { color: '#F26D6D', fontSize: 11, fontWeight: '800' },
+  excuseProgressPill: { backgroundColor: 'rgba(245,130,130,0.12)', borderWidth: 1, borderColor: 'rgba(245,130,130,0.3)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
+  excuseProgressText: { color: '#F58282', fontSize: 12, fontWeight: '800' },
   excuseSub: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, textAlign: 'center', marginTop: 6 },
-  excuseInputLarge: { width: '100%', backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, color: Theme.colors.textPrimary, fontSize: 13, borderWidth: 1, borderColor: Theme.colors.border, minHeight: 80, textAlignVertical: 'top', marginTop: Theme.spacing.md },
+  excuseInputLarge: { width: '100%', backgroundColor: 'rgba(4,9,18,0.5)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, color: Theme.colors.textPrimary, fontSize: 13, borderWidth: 1, borderColor: Theme.colors.border, minHeight: 80, textAlignVertical: 'top', marginTop: Theme.spacing.md },
   excuseActions: { flexDirection: 'row', gap: 8, marginTop: Theme.spacing.md, width: '100%' },
-  excuseNoBtn: { flex: 1, backgroundColor: 'rgba(242,109,109,0.12)', borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
-  excuseNoText: { color: '#F26D6D', fontSize: 13, fontWeight: '800' },
+  excuseNoBtn: { flex: 1, backgroundColor: 'rgba(245,130,130,0.12)', borderWidth: 1, borderColor: 'rgba(245,130,130,0.3)', paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
+  excuseNoText: { color: '#F58282', fontSize: 13, fontWeight: '800' },
   excuseYesBtn: { flex: 1, backgroundColor: Theme.colors.accentGold, paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
   excuseYesText: { color: Theme.colors.bgDark, fontSize: 13, fontWeight: '800' },
 });

@@ -265,7 +265,7 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
             <View style={styles.translationTitleGroup}>
               <Ionicons name="book-outline" size={16} color={Theme.colors.accentGold} />
               <Text style={styles.translationSourceTitle}>
-                Taqi-ud-Din al-Hilali & Muhsin Khan Translation
+                Hilali & Muhsin Khan translation
               </Text>
             </View>
           </View>
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   },
   countSub: {
     color: Theme.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     textTransform: 'uppercase',
   },
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: Theme.borderRadius.sm,
-    backgroundColor: 'rgba(221,178,82, 0.1)',
+    backgroundColor: 'rgba(227,185,91, 0.1)',
   },
   toggleTranslationText: {
     color: Theme.colors.accentGold,
@@ -459,11 +459,13 @@ const styles = StyleSheet.create({
     marginBottom: Theme.spacing.sm,
   },
   translationTitleGroup: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
   translationSourceTitle: {
+    flex: 1,
     color: Theme.colors.accentGold,
     fontSize: 12,
     fontWeight: '700',
@@ -522,7 +524,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   activeVerseCard: {
-    backgroundColor: 'rgba(221,178,82, 0.14)',
+    backgroundColor: 'rgba(227,185,91, 0.14)',
     borderColor: Theme.colors.accentGold,
     borderWidth: 1.5,
   },
@@ -543,7 +545,7 @@ const styles = StyleSheet.create({
   },
   versePillText: {
     color: Theme.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
   },
   activeVersePillText: {
@@ -557,7 +559,7 @@ const styles = StyleSheet.create({
   },
   nowPlayingText: {
     color: Theme.colors.accentGold,
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },

@@ -13,7 +13,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#070F1C"
+        "backgroundColor": "#080E19"
       },
       "package": "com.tikrar.app",
       "versionCode": 9,
@@ -38,7 +38,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#070F1C"
+          "backgroundColor": "#080E19"
         }
       ],
       "expo-sqlite",
@@ -47,7 +47,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#DDB252"
+          "color": "#E3B95B"
         }
       ],
       [

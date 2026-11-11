@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
   },
   rowToday: {
     borderColor: Theme.colors.accentGold,
-    backgroundColor: 'rgba(221,178,82,0.08)',
+    backgroundColor: 'rgba(227,185,91,0.08)',
   },
   rowCompleted: {
     borderColor: Theme.colors.successGreenBorder,
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
   },
   dayLabel: {
     color: Theme.colors.textMuted,
-    fontSize: 8.5,
+    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
   },
@@ -307,7 +307,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   statusPill: {
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.6,
     paddingHorizontal: 7,
@@ -348,7 +348,7 @@ const styles = StyleSheet.create({
   },
   rangeText: {
     color: Theme.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 11,
     lineHeight: 14,
   },
   todayIndicator: {
@@ -358,9 +358,6 @@ const styles = StyleSheet.create({
     bottom: 0,
     width: 3,
     backgroundColor: Theme.colors.accentGold,
-  },
-  checkIcon: {
-    marginLeft: 4,
   },
   emptyBox: {
     alignItems: 'center',

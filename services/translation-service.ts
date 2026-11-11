@@ -71,7 +71,9 @@ export class TranslationService {
   static prefetchFace(faceNumber: string): void {
     const list = getAyahListForFace(faceNumber);
     if (list.length === 0) return;
-    this.getPageTranslation(list[0].page).catch(() => {});
+    for (const page of new Set(list.map((item) => item.page))) {
+      this.getPageTranslation(page).catch(() => {});
+    }
   }
 
   /**
@@ -81,8 +83,9 @@ export class TranslationService {
     const list = getAyahListForFace(faceNumber);
     if (list.length === 0) return [];
 
-    const page = list[0].page;
-    const pageAyahs = await this.getPageTranslation(page);
+    // A whole-surah portion can run over more than one page.
+    const pages = [...new Set(list.map((item) => item.page))];
+    const pageAyahs = (await Promise.all(pages.map((page) => this.getPageTranslation(page)))).flat();
 
     if (pageAyahs.length === 0) {
       // Return placeholders if offline and not yet cached

@@ -7,6 +7,8 @@ Tikrar is a focused Quran memorization companion for building a consistent hifz 
 ## What is included
 
 - A daily memorization and revision view with phase-aware schedule cards.
+- A choice of starting point: from Al-Fatihah in Mus-haf order, or from An-Nas back to Al-Fatihah with the short surahs kept whole.
+- A Fajr-to-Fajr day, so work done after midnight still counts for the same portion.
 - Progress history and a calendar heat map for consistency at a glance.
 - Audio playback, tafseer/translation support, and voice recording for self-review.
 - Optional ustad setup during onboarding, with custom weekly days, local times, calendar events, and session reminders.

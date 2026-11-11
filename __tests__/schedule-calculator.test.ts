@@ -152,3 +152,28 @@ describe('calculateStreak', () => {
     expect(result.totalCompleted).toBe(1);
   });
 });
+
+describe('program day (Fajr to Fajr)', () => {
+  const { programDateString, parseFajrMinutes } = require('../utils/schedule-calculator');
+  it('keeps the previous date until Fajr', () => {
+    expect(programDateString(300, new Date(2026, 10, 12, 1, 30))).toBe('2026-11-11');
+    expect(programDateString(300, new Date(2026, 10, 12, 4, 59))).toBe('2026-11-11');
+  });
+  it('moves to the new date at Fajr', () => {
+    expect(programDateString(300, new Date(2026, 10, 12, 5, 0))).toBe('2026-11-12');
+    expect(programDateString(300, new Date(2026, 10, 12, 23, 59))).toBe('2026-11-12');
+  });
+  it('crosses month boundaries', () => {
+    expect(programDateString(330, new Date(2026, 11, 1, 2, 0))).toBe('2026-11-30');
+  });
+  it('parses the saved Fajr time and falls back to 05:00', () => {
+    expect(parseFajrMinutes('04:15')).toBe(255);
+    expect(parseFajrMinutes('25:00')).toBe(300);
+    expect(parseFajrMinutes('')).toBe(300);
+    expect(parseFajrMinutes(undefined)).toBe(300);
+  });
+  it('lets the streak be measured from the program day', () => {
+    expect(calculateStreak(['2026-11-10', '2026-11-11'], '2026-11-12').currentStreak).toBe(2);
+    expect(calculateStreak(['2026-11-10', '2026-11-11'], '2026-11-13').currentStreak).toBe(0);
+  });
+});

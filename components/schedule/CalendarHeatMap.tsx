@@ -163,7 +163,7 @@ const styles = StyleSheet.create({
   },
   expandIcon: {
     color: Theme.colors.textMuted,
-    fontSize: 10,
+    fontSize: 11,
   },
   grid: {
     flexDirection: 'column',
@@ -178,10 +178,6 @@ const styles = StyleSheet.create({
     width: CELL_SIZE,
     height: CELL_SIZE,
     borderRadius: 3,
-  },
-  emptyCell: {
-    backgroundColor: 'transparent',
-    borderWidth: 0,
   },
   selectedCell: {
     borderWidth: 2,

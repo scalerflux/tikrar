@@ -17,6 +17,17 @@ export interface ScheduleItem {
    */
   connectionDays?: [number, number];
   revisionDays?: [number, number];
+  /**
+   * Exact ayahs of the day when they are not a plain face, written as
+   * "ayahs:<surah>:<ayah>-<surah>:<ayah>". Only set on the backward schedule,
+   * where short surahs are kept whole. Read it through getPortionKey().
+   */
+  portionKey?: string;
+}
+
+/** The key to resolve a day's ayahs with (audio, translation, titles). */
+export function getPortionKey(item: Pick<ScheduleItem, 'faceNumber' | 'portionKey'>): string {
+  return item.portionKey ?? item.faceNumber;
 }
 
 export const TOTAL_PROGRAM_DAYS = 1206;
@@ -72,44 +83,163 @@ function rangeToDays(range: string): [number, number] | null {
   }
 }
 
+type Ayah = { surah: number; ayah: number; page: number };
+
+function portionKeyFor(ayahs: Ayah[]): string {
+  const first = ayahs[0];
+  const last = ayahs[ayahs.length - 1];
+  return `ayahs:${first.surah}:${first.ayah}-${last.surah}:${last.ayah}`;
+}
+
+/** How much of a Mus-haf page each surah takes, by share of the page's ayahs. */
+function surahSizesInPages(): Map<number, number> {
+  const sizes = new Map<number, number>();
+  const pages = pageAyahMap as Record<string, PageAyahInfo>;
+  for (const info of Object.values(pages)) {
+    const ayahs = enumeratePageAyahs(info);
+    if (ayahs.length === 0) continue;
+    for (const a of ayahs) {
+      sizes.set(a.surah, (sizes.get(a.surah) ?? 0) + 1 / ayahs.length);
+    }
+  }
+  return sizes;
+}
+
+/** A surah counts as short when it fits on a single Mus-haf page. */
+const SHORT_SURAH_MAX_PAGES = 1;
+
 /**
- * The backward schedule reuses the same 1,206 faces in a different order.
- * A face belongs to the surah of its LAST ayah, so each surah opens on the
- * face where it begins. Faces are then ordered by surah descending and, within
- * a surah, in normal Mus-haf order. The tour numbers and the size of the
- * connection and revision windows are taken from the same program day of the
- * forward schedule, so the daily workload matches the original program.
+ * Split `sizes` (in order) into `groups` contiguous runs so that the largest
+ * run is as small as possible. Returns the run lengths.
+ */
+function balancedPartition(sizes: number[], groups: number): number[] {
+  const n = sizes.length;
+  const k = Math.max(1, Math.min(groups, n));
+  const prefix = [0];
+  for (const x of sizes) prefix.push(prefix[prefix.length - 1] + x);
+  const best: number[][] = Array.from({ length: k + 1 }, () => new Array(n + 1).fill(Infinity));
+  const cut: number[][] = Array.from({ length: k + 1 }, () => new Array(n + 1).fill(0));
+  best[0][0] = 0;
+  for (let g = 1; g <= k; g++) {
+    for (let i = g; i <= n; i++) {
+      for (let j = g - 1; j < i; j++) {
+        const worst = Math.max(best[g - 1][j], prefix[i] - prefix[j]);
+        if (worst < best[g][i]) {
+          best[g][i] = worst;
+          cut[g][i] = j;
+        }
+      }
+    }
+  }
+  const lengths: number[] = [];
+  let i = n;
+  for (let g = k; g >= 1; g--) {
+    const j = cut[g][i];
+    lengths.unshift(i - j);
+    i = j;
+  }
+  return lengths;
+}
+
+/**
+ * The backward schedule covers the same Quran over the same 1,206 days, from
+ * An-Nas back to Al-Fatihah.
+ *
+ *  - The short surahs at the end (every surah from 114 downward that fits on
+ *    one page) are never cut: each of those days is one or more whole
+ *    surahs, spread evenly over the days those pages take in the forward plan.
+ *  - Everything before them uses the normal half-page faces. A face belongs
+ *    to the surah of its LAST ayah, so each surah opens on the face where it
+ *    begins. Surahs run in descending order, each one front to back.
+ *
+ * Tour numbers and the size of the connection and revision windows come from
+ * the same program day of the forward schedule, so the daily workload matches
+ * the original program.
  */
 function buildBackwardSchedule(): ScheduleItem[] {
   const keyed = FORWARD_SCHEDULE.map((item, index) => {
     const ayahs = getAyahListForFace(item.faceNumber);
     const surah = ayahs.length > 0 ? ayahs[ayahs.length - 1].surah : 0;
-    return { item, index, surah };
+    return { item, index, surah, ayahs };
   });
-  keyed.sort((a, b) => (b.surah - a.surah) || (a.index - b.index));
 
-  const faces = keyed.map((k) => k.item);
-  const describe = (days: [number, number] | null): string => {
-    if (!days) return '';
-    const first = faces[days[0] - 1].faceNumber;
-    const last = faces[days[1] - 1].faceNumber;
-    return days[0] === days[1] ? first : `${first} → ${last}`;
+  // First surah (counting down from 114) that is too long to keep whole.
+  const sizes = surahSizesInPages();
+  let firstShort = SURAH_LIST.length + 1;
+  for (let n = SURAH_LIST.length; n >= 1; n--) {
+    if ((sizes.get(n) ?? Infinity) > SHORT_SURAH_MAX_PAGES) break;
+    firstShort = n;
+  }
+
+  const zoneFaces = keyed.filter((k) => k.surah >= firstShort);
+  const faceDays = keyed
+    .filter((k) => k.surah < firstShort)
+    .sort((a, b) => (b.surah - a.surah) || (a.index - b.index));
+
+  type Day = { faceNumber: string; surahName: string; portionKey?: string };
+  const days: Day[] = [];
+
+  // Whole-surah days, last surah first.
+  const shortSurahs: number[] = [];
+  for (let n = SURAH_LIST.length; n >= firstShort; n--) shortSurahs.push(n);
+  if (shortSurahs.length > 0 && zoneFaces.length > 0) {
+    const lengths = balancedPartition(shortSurahs.map((n) => sizes.get(n) ?? 0), zoneFaces.length);
+    let cursor = 0;
+    for (const length of lengths) {
+      const group = shortSurahs.slice(cursor, cursor + length).sort((a, b) => a - b);
+      cursor += length;
+      const first = group[0];
+      const last = group[group.length - 1];
+      const key = `ayahs:${first}:1-${last}:${SURAH_LIST[last - 1].totalVerses}`;
+      const pages = [...new Set(getAyahListForFace(key).map((a) => a.page))];
+      const pageLabel = pages.length > 1 ? `${pages[0]}-${pages[pages.length - 1]}` : String(pages[0]);
+      days.push({ faceNumber: pageLabel, surahName: 'Group of Surahs', portionKey: key });
+    }
+  }
+
+  // A face can start in the last long surah and end in the first short one.
+  // Its opening ayahs would otherwise be left out, so they join the face
+  // before it, which completes that surah.
+  const leftovers = new Map<number, Ayah[]>();
+  for (const face of zoneFaces) {
+    const orphaned = face.ayahs.filter((a) => a.surah < firstShort);
+    if (orphaned.length > 0) leftovers.set(face.index - 1, orphaned);
+  }
+
+  for (const face of faceDays) {
+    const extra = leftovers.get(face.index);
+    days.push({
+      faceNumber: face.item.faceNumber,
+      surahName: face.item.surahName,
+      portionKey: extra ? portionKeyFor([...face.ayahs, ...extra]) : undefined,
+    });
+  }
+
+  const describe = (range: [number, number] | null): string => {
+    if (!range) return '';
+    // A whole-surah day is clearer by name; a half-page day by its face.
+    const label = (day: Day) =>
+      day.portionKey && !/h[12]$/.test(day.faceNumber) ? getDisplaySurahName(day) : day.faceNumber;
+    const first = label(days[range[0] - 1]);
+    const last = label(days[range[1] - 1]);
+    return range[0] === range[1] ? first : `${first} → ${last}`;
   };
 
-  return faces.map((face, i) => {
+  return days.map((day, i) => {
     const template = FORWARD_SCHEDULE[i];
     const connectionDays = rangeToDays(template.connectionRange);
     const revisionDays = rangeToDays(template.revisionRange);
     const result: ScheduleItem = {
       dayNumber: i + 1,
-      faceNumber: face.faceNumber,
-      surahName: face.surahName,
+      faceNumber: day.faceNumber,
+      surahName: day.surahName,
       tourNumber: template.tourNumber,
       revisionRange: describe(revisionDays),
       connectionRange: describe(connectionDays),
     };
     if (connectionDays) result.connectionDays = connectionDays;
     if (revisionDays) result.revisionDays = revisionDays;
+    if (day.portionKey) result.portionKey = day.portionKey;
     return result;
   });
 }
@@ -148,6 +278,30 @@ export function localDateString(date: Date = new Date()): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
+}
+
+export const DEFAULT_FAJR_MINUTES = 5 * 60;
+
+/** Minutes after midnight for a saved "HH:MM" Fajr time (05:00 when invalid). */
+export function parseFajrMinutes(value: string | null | undefined): number {
+  const match = typeof value === 'string' ? value.match(/^(\d{2}):(\d{2})$/) : null;
+  if (!match) return DEFAULT_FAJR_MINUTES;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  return hours < 24 && minutes < 60 ? hours * 60 + minutes : DEFAULT_FAJR_MINUTES;
+}
+
+/**
+ * The program day a moment belongs to. The daily portion runs from the adhan
+ * of Fajr to the adhan of Fajr of the next day (precondition 14), so the
+ * hours between midnight and Fajr still belong to the previous calendar date.
+ */
+export function programDateString(fajrMinutes: number = DEFAULT_FAJR_MINUTES, now: Date = new Date()): string {
+  const minutesNow = now.getHours() * 60 + now.getMinutes();
+  if (minutesNow >= fajrMinutes) return localDateString(now);
+  const previous = new Date(now);
+  previous.setDate(previous.getDate() - 1);
+  return localDateString(previous);
 }
 
 /**
@@ -219,7 +373,7 @@ export interface StreakInfo {
  * or yesterday; anything older resets it to 0. A Set gives O(n) lookups
  * and de-duplicates repeat completions.
  */
-export function calculateStreak(completedDates: string[]): StreakInfo {
+export function calculateStreak(completedDates: string[], today: string = localDateString()): StreakInfo {
   const raw = Array.isArray(completedDates) ? completedDates : [];
   const dates = raw.filter((d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d));
   const sorted = [...new Set(dates)].sort();
@@ -242,7 +396,6 @@ export function calculateStreak(completedDates: string[]): StreakInfo {
     prev = date;
   }
 
-  const today = localDateString();
   const daysSinceLastCompletion = daysBetweenDates(prev!, today);
   const currentStreak = daysSinceLastCompletion <= 1 ? lastRun : 0;
 
@@ -282,9 +435,14 @@ export function getStartDayAfterPriorFace(
 
   let lastDay = 0;
   for (const item of getSchedule(direction)) {
-    if (getSurahPageNumber(item.faceNumber) !== page) continue;
     const key = normalizeFaceKey(item.faceNumber);
     const isWholePage = !/h[12]$/.test(key);
+    if (isWholePage && item.portionKey) {
+      // Whole-surah day: it counts for every page its surahs touch.
+      if (!getAyahListForFace(item.portionKey).some((a) => a.page === page)) continue;
+    } else if (getSurahPageNumber(item.faceNumber) !== page) {
+      continue;
+    }
     if (half && !isWholePage && !key.endsWith(half)) continue;
     if (item.dayNumber > lastDay) lastDay = item.dayNumber;
   }
@@ -324,8 +482,34 @@ function enumeratePageAyahs(info: PageAyahInfo): { surah: number; ayah: number }
   return result;
 }
 
+let pageList: { page: number; info: PageAyahInfo }[] | null = null;
+
+/** Ayahs for an explicit "ayahs:S:A-S:A" portion, each tagged with its page. */
+function getAyahListForRange(key: string): { surah: number; ayah: number; page: number }[] {
+  const m = key.match(/^ayahs:(\d+):(\d+)-(\d+):(\d+)$/);
+  if (!m) return [];
+  const [fromSurah, fromAyah, toSurah, toAyah] = m.slice(1).map(Number);
+  if (!pageList) {
+    pageList = Object.entries(pageAyahMap as Record<string, PageAyahInfo>)
+      .map(([page, info]) => ({ page: Number(page), info }))
+      .sort((a, b) => a.page - b.page);
+  }
+  const before = (s1: number, a1: number, s2: number, a2: number) => s1 < s2 || (s1 === s2 && a1 < a2);
+  const result: { surah: number; ayah: number; page: number }[] = [];
+  for (const { page, info } of pageList) {
+    if (before(info.e, info.ea, fromSurah, fromAyah)) continue;
+    if (before(toSurah, toAyah, info.s, info.sa)) break;
+    for (const a of enumeratePageAyahs(info)) {
+      if (before(a.surah, a.ayah, fromSurah, fromAyah) || before(toSurah, toAyah, a.surah, a.ayah)) continue;
+      result.push({ ...a, page });
+    }
+  }
+  return result;
+}
+
 export function getAyahListForFace(faceNumber: string): { surah: number; ayah: number; page: number }[] {
   if (!faceNumber) return [];
+  if (faceNumber.startsWith('ayahs:')) return getAyahListForRange(faceNumber);
   const match = faceNumber.trim().match(/^(\d+)\s*(h1|h2)?$/i);
   if (!match) return [];
   const page = parseInt(match[1], 10);
@@ -370,11 +554,11 @@ export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
  * in two, so a surah that is only partly inside the face carries its ayah
  * range ("Al-Falaq 5 · An-Nas") instead of looking like the whole surah.
  */
-export function getDisplaySurahName(item: Pick<ScheduleItem, 'surahName' | 'faceNumber'>): string {
+export function getDisplaySurahName(item: Pick<ScheduleItem, 'surahName' | 'faceNumber' | 'portionKey'>): string {
   if (item.surahName !== 'Group of Surahs') return item.surahName;
 
   const bySurah = new Map<number, number[]>();
-  for (const a of getAyahListForFace(item.faceNumber)) {
+  for (const a of getAyahListForFace(getPortionKey(item))) {
     const list = bySurah.get(a.surah) ?? [];
     list.push(a.ayah);
     bySurah.set(a.surah, list);
