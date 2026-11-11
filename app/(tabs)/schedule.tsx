@@ -83,16 +83,18 @@ export default function ScheduleScreen() {
         ]}
       >
         <View style={styles.dayCol}>
-          <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>Day {item.dayNumber}</Text>
-          <Text style={styles.tourNum}>Tour #{item.tourNumber}</Text>
-          {isToday ? <Text style={styles.statusBadgeToday}>TODAY</Text> : null}
-          {isCompleted ? <Text style={styles.statusBadgeDone}>DONE</Text> : null}
-          {isMissed ? <Text style={styles.statusBadgeMissed}>MISSED</Text> : null}
+          <Text style={styles.dayLabel}>DAY</Text>
+          <Text style={[styles.dayNum, isToday && styles.dayNumToday]}>{item.dayNumber}</Text>
         </View>
 
         <View style={styles.centerCol}>
-          <Text style={styles.surahName}>{item.surahName}</Text>
-          <Text style={styles.faceNum}>Face: {item.faceNumber || '—'}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.surahName} numberOfLines={1}>{item.surahName}</Text>
+            {isToday ? <Text style={[styles.statusPill, styles.statusBadgeToday]}>TODAY</Text> : null}
+            {isCompleted ? <Text style={[styles.statusPill, styles.statusBadgeDone]}>DONE</Text> : null}
+            {isMissed ? <Text style={[styles.statusPill, styles.statusBadgeMissed]}>MISSED</Text> : null}
+          </View>
+          <Text style={styles.faceNum}>Face {item.faceNumber || '—'} · Tour #{item.tourNumber}</Text>
         </View>
 
         <View style={styles.rightCol}>
@@ -109,7 +111,6 @@ export default function ScheduleScreen() {
         </View>
 
         {isToday ? <View style={styles.todayIndicator} /> : null}
-        {isCompleted ? <Ionicons name="checkmark-circle" size={18} color="#10B981" style={styles.checkIcon} /> : null}
       </View>
     );
   };
@@ -118,10 +119,13 @@ export default function ScheduleScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>1,206-Day Schedule</Text>
+          <View>
+            <Text style={styles.headerOverline}>1,206-day plan</Text>
+            <Text style={styles.headerTitle}>Schedule</Text>
+          </View>
           <TouchableOpacity style={styles.todayBtn} onPress={scrollToToday} activeOpacity={0.7}>
             <Ionicons name="locate-outline" size={14} color={Theme.colors.accentGold} />
-            <Text style={styles.todayBtnText}>Go to Today</Text>
+            <Text style={styles.todayBtnText}>Go to today</Text>
           </TouchableOpacity>
         </View>
 
@@ -177,26 +181,39 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: Theme.spacing.md,
     paddingTop: Theme.spacing.md,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-end',
     marginBottom: Theme.spacing.md,
+  },
+  headerOverline: {
+    color: Theme.colors.accentGold,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginTop: Theme.spacing.xs,
   },
   headerTitle: {
     color: Theme.colors.textPrimary,
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '800',
+    letterSpacing: -0.6,
+    marginTop: 2,
   },
   todayBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
     backgroundColor: Theme.colors.accentGoldMuted,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Theme.borderRadius.md,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: Theme.borderRadius.full,
     borderWidth: 1,
     borderColor: Theme.colors.accentGoldBorder,
   },
@@ -233,68 +250,82 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.md,
-    padding: Theme.spacing.md,
-    marginBottom: Theme.spacing.xs,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: Theme.colors.border,
-    gap: Theme.spacing.sm,
+    gap: 12,
     overflow: 'hidden',
   },
   rowToday: {
     borderColor: Theme.colors.accentGold,
-    backgroundColor: 'rgba(212,168,67,0.08)',
+    backgroundColor: 'rgba(221,178,82,0.08)',
   },
   rowCompleted: {
-    borderColor: 'rgba(16,185,129,0.25)',
+    borderColor: Theme.colors.successGreenBorder,
   },
   rowMissed: {
     borderColor: Theme.colors.warningAmberBg,
-    opacity: 0.95,
   },
   dayCol: {
-    width: 72,
+    width: 50,
+    height: 50,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.045)',
+  },
+  dayLabel: {
+    color: Theme.colors.textMuted,
+    fontSize: 8.5,
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   dayNum: {
-    color: Theme.colors.accentGold,
-    fontSize: 13,
+    color: Theme.colors.textPrimary,
+    fontSize: 15,
     fontWeight: '800',
+    fontVariant: ['tabular-nums'],
   },
   dayNumToday: {
     color: Theme.colors.accentGold,
   },
-  tourNum: {
-    color: Theme.colors.textSecondary,
-    fontSize: 10,
-    marginTop: 2,
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  statusPill: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 999,
+    overflow: 'hidden',
   },
   statusBadgeToday: {
-    color: Theme.colors.accentGold,
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    marginTop: 4,
+    color: Theme.colors.bgDark,
+    backgroundColor: Theme.colors.accentGold,
   },
   statusBadgeDone: {
-    color: '#10B981',
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    marginTop: 4,
+    color: Theme.colors.successGreen,
+    backgroundColor: Theme.colors.successGreenBg,
   },
   statusBadgeMissed: {
     color: Theme.colors.warningAmber,
-    fontSize: 9,
-    fontWeight: '800',
-    letterSpacing: 0.5,
-    marginTop: 4,
+    backgroundColor: Theme.colors.warningAmberBg,
   },
   centerCol: {
     flex: 1,
+    minWidth: 0,
   },
   surahName: {
     color: Theme.colors.textPrimary,
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
+    flexShrink: 1,
   },
   faceNum: {
     color: Theme.colors.textSecondary,
@@ -302,7 +333,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   rightCol: {
-    width: 100,
+    maxWidth: 104,
     alignItems: 'flex-end',
   },
   rangeText: {

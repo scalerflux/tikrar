@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: Theme.borderRadius.sm,
-    backgroundColor: 'rgba(212, 168, 67, 0.1)',
+    backgroundColor: 'rgba(221,178,82, 0.1)',
   },
   toggleTranslationText: {
     color: Theme.colors.accentGold,
@@ -519,7 +519,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   activeVerseCard: {
-    backgroundColor: 'rgba(212, 168, 67, 0.14)',
+    backgroundColor: 'rgba(221,178,82, 0.14)',
     borderColor: Theme.colors.accentGold,
     borderWidth: 1.5,
   },

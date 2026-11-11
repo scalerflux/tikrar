@@ -166,8 +166,9 @@ export default function ProgressScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.headerTitle}>Progress Analytics</Text>
-        <Text style={styles.headerSubtitle}>Day {currentDay} of {TOTAL_PROGRAM_DAYS} • {streakData.totalCompleted} faces completed</Text>
+        <Text style={styles.headerOverline}>Your journey</Text>
+        <Text style={styles.headerTitle}>Progress</Text>
+        <Text style={styles.headerSubtitle}>Day {currentDay} of {TOTAL_PROGRAM_DAYS.toLocaleString()} · {streakData.totalCompleted} faces completed</Text>
 
         <View style={styles.viewToggle}>
           <TouchableOpacity
@@ -190,44 +191,40 @@ export default function ProgressScreen() {
 
         {view === 'quran' ? (
           <>
-            <View style={styles.progressRingContainer}>
-              <ProgressRing percentage={parseFloat(percentComplete)} size={200} strokeWidth={16} />
-              <Text style={styles.percentCaption}>{percentComplete}% of Quran faces</Text>
+            <View style={styles.ringCard}>
+              <ProgressRing percentage={parseFloat(percentComplete)} size={184} strokeWidth={14} />
+              <Text style={styles.percentCaption}>
+                {totalFacesCompleted.toLocaleString()} of {totalFacesInQuran.toLocaleString()} half-page faces
+              </Text>
             </View>
 
             <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{totalFacesCompleted}</Text>
-                <Text style={styles.statLabel}>Faces Done</Text>
+                <View style={styles.statIcon}><Ionicons name="checkmark-done" size={15} color={Theme.colors.successGreen} /></View>
+                <Text style={styles.statNumber}>{totalFacesCompleted.toLocaleString()}</Text>
+                <Text style={styles.statLabel}>Faces done</Text>
               </View>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{1206 - totalFacesCompleted}</Text>
+                <View style={styles.statIcon}><Ionicons name="hourglass-outline" size={15} color={Theme.colors.textSecondary} /></View>
+                <Text style={styles.statNumber}>{(totalFacesInQuran - totalFacesCompleted).toLocaleString()}</Text>
                 <Text style={styles.statLabel}>Remaining</Text>
               </View>
+            </View>
+            <View style={styles.statsRow}>
               <View style={styles.statBox}>
-                <Text style={styles.statNumber}>{currentDay}</Text>
-                <Text style={styles.statLabel}>Current Day</Text>
+                <View style={styles.statIcon}><Ionicons name="flame" size={15} color={Theme.colors.accentGold} /></View>
+                <Text style={styles.statNumber}>{streakData.currentStreak}</Text>
+                <Text style={styles.statLabel}>Current streak, days</Text>
+              </View>
+              <View style={styles.statBox}>
+                <View style={styles.statIcon}><Ionicons name="trophy" size={15} color={Theme.colors.accentGold} /></View>
+                <Text style={styles.statNumber}>{streakData.longestStreak}</Text>
+                <Text style={styles.statLabel}>Best streak, days</Text>
               </View>
             </View>
 
-            <View style={styles.streakCard}>
-              <View style={styles.streakBox}>
-                <Ionicons name="flame" size={28} color={Theme.colors.accentGold} />
-                <Text style={styles.streakNum}>{streakData.currentStreak}</Text>
-                <Text style={styles.streakLabel}>Current Streak (Days)</Text>
-              </View>
-
-              <View style={styles.divider} />
-
-              <View style={styles.streakBox}>
-                <Ionicons name="trophy-outline" size={28} color={Theme.colors.accentGold} />
-                <Text style={styles.streakNum}>{streakData.longestStreak}</Text>
-                <Text style={styles.streakLabel}>Best Streak (Days)</Text>
-              </View>
-            </View>
-
-            <Text style={styles.sectionHeader}>SURAH BREAKDOWN • {SURAH_LIST.length} surahs</Text>
-            <Text style={styles.sectionSub}>Progress per surah based on your 1,206 half-page schedule</Text>
+            <Text style={styles.sectionHeader}>Surah breakdown</Text>
+            <Text style={styles.sectionSub}>{SURAH_LIST.length} surahs, based on your 1,206 half-page schedule</Text>
 
             {surahStats.map(({ surah, total, done, pct, isCompleted, isStarted }) => {
               return (
@@ -245,7 +242,7 @@ export default function ProgressScreen() {
                   <View style={styles.surahInfo}>
                     <View style={styles.surahNameRow}>
                       <Text style={styles.surahName}>{surah.transliteration}</Text>
-                      {isCompleted ? <Ionicons name="checkmark-circle" size={16} color="#10B981" /> : null}
+                      {isCompleted ? <Ionicons name="checkmark-circle" size={16} color="#2DD4A0" /> : null}
                     </View>
                     <Text style={styles.surahMeta}>{surah.type} • {surah.totalVerses} Verses{total ? ` • ${done}/${total} faces` : ' • Not in main schedule'}</Text>
                     {total > 0 ? (
@@ -264,7 +261,7 @@ export default function ProgressScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.sectionHeader}>USTAD RECITATION LOG</Text>
+            <Text style={styles.sectionHeader}>Ustad recitation log</Text>
             <Text style={styles.sectionSub}>Sessions recited to {ustadName || 'your ustad'}, with missed days</Text>
             {logEntries.length === 0 ? (
               <View style={styles.logEmptyBox}>
@@ -276,7 +273,7 @@ export default function ProgressScreen() {
               logEntries.map((e) => (
                 <View key={e.key} style={[styles.logRow, e.attended ? styles.logRowAttended : styles.logRowMissed]}>
                   <View style={[styles.logIconWrap, e.attended ? styles.logIconAttended : styles.logIconMissed]}>
-                    <Ionicons name={e.attended ? 'checkmark' : 'close'} size={16} color={e.attended ? Theme.colors.bgDark : '#EF4444'} />
+                    <Ionicons name={e.attended ? 'checkmark' : 'close'} size={16} color={e.attended ? Theme.colors.bgDark : '#F26D6D'} />
                   </View>
                   <View style={styles.logInfo}>
                     {e.attended && e.session ? (
@@ -312,24 +309,36 @@ const styles = StyleSheet.create({
   },
   container: {
     padding: Theme.spacing.md,
-    paddingBottom: 100,
+    paddingBottom: 110,
+    width: '100%',
+    maxWidth: 640,
+    alignSelf: 'center',
+  },
+  headerOverline: {
+    color: Theme.colors.accentGold,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginTop: Theme.spacing.xs,
   },
   headerTitle: {
     color: Theme.colors.textPrimary,
-    fontSize: 24,
+    fontSize: 30,
     fontWeight: '800',
-    marginBottom: 4,
+    letterSpacing: -0.6,
+    marginTop: 2,
   },
   headerSubtitle: {
     color: Theme.colors.textSecondary,
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 13,
+    marginTop: 4,
     marginBottom: Theme.spacing.md,
   },
   viewToggle: {
     flexDirection: 'row',
     backgroundColor: Theme.colors.bgCard,
-    borderRadius: Theme.borderRadius.md,
+    borderRadius: Theme.borderRadius.full,
     borderWidth: 1,
     borderColor: Theme.colors.border,
     padding: 4,
@@ -343,7 +352,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 10,
-    borderRadius: Theme.borderRadius.sm,
+    borderRadius: Theme.borderRadius.full,
   },
   viewToggleBtnActive: {
     backgroundColor: Theme.colors.accentGold,
@@ -365,14 +374,14 @@ const styles = StyleSheet.create({
     padding: Theme.spacing.md,
     borderWidth: 1,
     borderColor: Theme.colors.border,
-    marginBottom: Theme.spacing.xs,
+    marginBottom: 8,
   },
   logRowAttended: {
-    borderColor: 'rgba(16,185,129,0.3)',
+    borderColor: 'rgba(45,212,160,0.3)',
   },
   logRowMissed: {
-    borderColor: 'rgba(239,68,68,0.3)',
-    backgroundColor: 'rgba(239,68,68,0.05)',
+    borderColor: 'rgba(242,109,109,0.3)',
+    backgroundColor: 'rgba(242,109,109,0.05)',
   },
   logIconWrap: {
     width: 26,
@@ -382,12 +391,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logIconAttended: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#2DD4A0',
   },
   logIconMissed: {
-    backgroundColor: 'rgba(239,68,68,0.15)',
+    backgroundColor: 'rgba(242,109,109,0.15)',
     borderWidth: 1,
-    borderColor: 'rgba(239,68,68,0.4)',
+    borderColor: 'rgba(242,109,109,0.4)',
   },
   logInfo: {
     flex: 1,
@@ -403,7 +412,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   logMissedText: {
-    color: '#EF4444',
+    color: '#F26D6D',
     fontSize: 12,
     fontWeight: '600',
     lineHeight: 17,
@@ -429,84 +438,68 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
   },
-  progressRingContainer: {
+  ringCard: {
     alignItems: 'center',
-    marginVertical: Theme.spacing.lg,
+    backgroundColor: Theme.colors.bgHero,
+    borderRadius: Theme.borderRadius.xl,
+    borderWidth: 1,
+    borderColor: Theme.colors.accentGoldBorder,
+    paddingVertical: 28,
+    marginBottom: 10,
+    ...Theme.shadow.card,
   },
   percentCaption: {
     color: Theme.colors.textSecondary,
-    fontSize: 12,
-    marginTop: 8,
+    fontSize: 13,
+    marginTop: 18,
   },
   statsRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: Theme.spacing.md,
-    gap: 8,
+    marginBottom: 10,
+    gap: 10,
   },
   statBox: {
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.lg,
     borderWidth: 1,
     borderColor: Theme.colors.border,
-    alignItems: 'center',
-    paddingVertical: Theme.spacing.md,
+    padding: Theme.spacing.md,
     flex: 1,
+  },
+  statIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    marginBottom: 10,
   },
   statNumber: {
     color: Theme.colors.textPrimary,
-    fontSize: 22,
+    fontSize: 26,
     fontWeight: '800',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
   },
   statLabel: {
     color: Theme.colors.textSecondary,
-    fontSize: 10,
+    fontSize: 12,
     marginTop: 2,
     fontWeight: '600',
-    textAlign: 'center',
-  },
-  streakCard: {
-    backgroundColor: Theme.colors.bgCard,
-    borderRadius: Theme.borderRadius.lg,
-    padding: Theme.spacing.md,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
-    borderWidth: 1,
-    borderColor: Theme.colors.border,
-    marginBottom: Theme.spacing.md,
-  },
-  streakBox: {
-    alignItems: 'center',
-  },
-  streakNum: {
-    color: Theme.colors.textPrimary,
-    fontSize: 20,
-    fontWeight: '800',
-    marginTop: 4,
-  },
-  streakLabel: {
-    color: Theme.colors.textSecondary,
-    fontSize: 11,
-    marginTop: 2,
-  },
-  divider: {
-    width: 1,
-    height: 40,
-    backgroundColor: Theme.colors.border,
   },
   sectionHeader: {
-    color: Theme.colors.accentGold,
-    fontSize: 11,
+    color: Theme.colors.textPrimary,
+    fontSize: 18,
     fontWeight: '800',
-    letterSpacing: 1,
-    marginTop: Theme.spacing.sm,
+    letterSpacing: -0.2,
+    marginTop: Theme.spacing.md,
   },
   sectionSub: {
     color: Theme.colors.textMuted,
-    fontSize: 11,
-    marginBottom: Theme.spacing.sm,
-    marginTop: 2,
+    fontSize: 12,
+    marginBottom: 12,
+    marginTop: 3,
   },
   surahRow: {
     flexDirection: 'row',
@@ -514,28 +507,28 @@ const styles = StyleSheet.create({
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.md,
-    marginBottom: Theme.spacing.xs,
+    marginBottom: 8,
     borderWidth: 1,
     borderColor: Theme.colors.border,
   },
   surahRowCompleted: {
-    borderColor: 'rgba(16,185,129,0.35)',
-    backgroundColor: 'rgba(16,185,129,0.06)',
+    borderColor: 'rgba(45,212,160,0.35)',
+    backgroundColor: 'rgba(45,212,160,0.06)',
   },
   surahRowStarted: {
-    borderColor: 'rgba(212,168,67,0.25)',
+    borderColor: 'rgba(221,178,82,0.25)',
   },
   surahNumberBadge: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Theme.colors.accentGoldMuted,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: Theme.spacing.md,
   },
   surahBadgeDone: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#2DD4A0',
   },
   surahNumberText: {
     color: Theme.colors.accentGold,
@@ -576,7 +569,7 @@ const styles = StyleSheet.create({
     borderRadius: 2,
   },
   miniBarDone: {
-    backgroundColor: '#10B981',
+    backgroundColor: '#2DD4A0',
   },
   surahRight: {
     alignItems: 'flex-end',
@@ -594,6 +587,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   surahPctDone: {
-    color: '#10B981',
+    color: '#2DD4A0',
   },
 });

@@ -16,13 +16,16 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: Theme.colors.tabBarBg,
           borderTopColor: Theme.colors.border,
-          height: 60 + insets.bottom,
-          paddingBottom: 8 + insets.bottom,
-          paddingTop: 6,
+          borderTopWidth: 1,
+          height: 68 + insets.bottom,
+          paddingBottom: 4 + insets.bottom,
+          paddingTop: 4,
+          elevation: 0,
         },
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontWeight: '700',
+          letterSpacing: 0.2,
         },
       }}
     >
@@ -30,8 +33,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Today',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="today-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'today' : 'today-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -39,8 +42,8 @@ export default function TabLayout() {
         name="progress"
         options={{
           title: 'Progress',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'stats-chart' : 'stats-chart-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -48,8 +51,8 @@ export default function TabLayout() {
         name="schedule"
         options={{
           title: 'Schedule',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="calendar-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'calendar' : 'calendar-outline'} size={22} color={color} />
           ),
         }}
       />
@@ -57,8 +60,8 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={22} color={color} />
           ),
         }}
       />

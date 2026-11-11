@@ -83,7 +83,7 @@ export default function TodayScreen() {
   const [ustadSessionCount, setUstadSessionCount] = useState(0);
   const [ustadAttended, setUstadAttended] = useState(false);
   const [currentDateStr, setCurrentDateStr] = useState(localDateString());
-  const [timeLeftColor, setTimeLeftColor] = useState('#10B981');
+  const [timeLeftColor, setTimeLeftColor] = useState('#2DD4A0');
   const fajrMinutesRef = useRef(300);
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const confettiSpin = useRef(new Animated.Value(0)).current;
@@ -102,7 +102,7 @@ export default function TodayScreen() {
     const h = Math.floor(diff / 3600000);
     const m = Math.floor((diff % 3600000) / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    const color = diff > 6 * 3600000 ? '#10B981' : diff > 3600000 ? '#F59E0B' : '#EF4444';
+    const color = diff > 6 * 3600000 ? '#2DD4A0' : diff > 3600000 ? '#F5A524' : '#F26D6D';
     return { text: `${h}h ${m}m ${s}s`, color };
   };
 
@@ -282,6 +282,12 @@ export default function TodayScreen() {
   const hasRevision = Boolean(scheduleItem?.revisionRange && scheduleItem.revisionRange.trim() !== '-');
   const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && (!hasConnection || progress.phaseConnection === 1) && (!hasRevision || progress.phaseRevision === 1);
 
+  const phasesTotal = 4 + (hasConnection ? 1 : 0) + (hasRevision ? 1 : 0);
+  const phasesDone = !progress ? 0 :
+    (progress.phaseYesterday === 1 ? 1 : 0) + (progress.phaseListening === 1 ? 1 : 0) +
+    (progress.phaseTafseer === 1 ? 1 : 0) + (progress.phaseRecording === 1 ? 1 : 0) +
+    (hasConnection && progress.phaseConnection === 1 ? 1 : 0) + (hasRevision && progress.phaseRevision === 1 ? 1 : 0);
+
   const todayDayOfWeek = new Date().getDay();
   const ustadDays = getUstadSessionDays(ustadName, customWeekdays);
   // Day 1 has no previous face to recite to the ustad, so the card stays hidden.
@@ -411,13 +417,15 @@ export default function TodayScreen() {
           streak={streak}
           timeLeft={timeLeft}
           timeLeftColor={timeLeftColor}
+          phasesDone={phasesDone}
+          phasesTotal={phasesTotal}
         />
 
         <DailyReminderCard reminder={reminder} />
 
         <View style={styles.negligenceRow}>
           <View style={styles.negligenceBox}>
-            <View style={styles.negligenceHeader}><Ionicons name="warning-outline" size={14} color="#EF4444" /><Text style={styles.negligenceTitle}>Negligence</Text></View>
+            <View style={styles.negligenceHeader}><Ionicons name="warning-outline" size={14} color="#F26D6D" /><Text style={styles.negligenceTitle}>Negligence</Text></View>
             <Text style={styles.negligenceCount}>{negligenceCount}</Text>
             <Text style={styles.negligenceSub}>without excuse</Text>
           </View>
@@ -439,7 +447,12 @@ export default function TodayScreen() {
           </View>
         </View>
 
-        <Text style={styles.sectionHeader}>TODAY'S 6 PHASES</Text>
+        <View style={styles.sectionRow}>
+          <Text style={styles.sectionHeader}>Today's phases</Text>
+          <View style={styles.sectionCount}>
+            <Text style={styles.sectionCountText}>{phasesDone}/{phasesTotal}</Text>
+          </View>
+        </View>
 
         <PhaseCard
           phaseNumber={1}
@@ -589,7 +602,7 @@ export default function TodayScreen() {
 
         <TouchableOpacity style={[styles.confirmBtn, !canConfirm && styles.confirmBtnDisabled]} onPress={handleConfirmToday} disabled={!canConfirm} activeOpacity={0.9}>
           <Ionicons name={canConfirm ? "checkmark-circle" : "lock-closed-outline"} size={20} color={canConfirm ? Theme.colors.bgDark : Theme.colors.textMuted} />
-          <Text style={[styles.confirmBtnText, !canConfirm && styles.confirmBtnTextDisabled]}>Confirm today's Completion</Text>
+          <Text style={[styles.confirmBtnText, !canConfirm && styles.confirmBtnTextDisabled]}>Confirm today's completion</Text>
         </TouchableOpacity>
         {!canConfirm && (
           <Text style={styles.confirmHint}>
@@ -604,7 +617,7 @@ export default function TodayScreen() {
       <Modal visible={showExcusePrompt} transparent animationType="fade" statusBarTranslucent>
         <View style={styles.excuseOverlay}>
           <View style={styles.excuseCard}>
-            <Ionicons name="alert-circle-outline" size={32} color="#EF4444" />
+            <Ionicons name="alert-circle-outline" size={32} color="#F26D6D" />
             <Text style={styles.excuseTitle}>Missed Day Detected</Text>
             {excuseTotal > 1 && (
               <View style={styles.excuseProgressPill}>
@@ -628,12 +641,15 @@ export default function TodayScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Theme.colors.bgDark },
   loadingContainer: { flex: 1, backgroundColor: Theme.colors.bgDark, justifyContent: 'center', alignItems: 'center' },
-  scrollContent: { padding: Theme.spacing.md, paddingBottom: 100 },
-  sectionHeader: { color: Theme.colors.accentGold, fontSize: 11, fontWeight: '800', letterSpacing: 1, marginBottom: Theme.spacing.sm, marginTop: Theme.spacing.xs },
-  cardDetailBox: { backgroundColor: 'rgba(10, 22, 40, 0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
-  detailTitle: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '700', textTransform: 'uppercase' },
-  detailValue: { color: Theme.colors.accentGold, fontSize: 15, fontWeight: '700', marginVertical: 4 },
-  detailInstruction: { color: Theme.colors.textSecondary, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  scrollContent: { padding: Theme.spacing.md, paddingBottom: 110, width: '100%', maxWidth: 640, alignSelf: 'center' },
+  sectionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12, marginTop: Theme.spacing.sm },
+  sectionHeader: { color: Theme.colors.textPrimary, fontSize: 18, fontWeight: '800', letterSpacing: -0.2 },
+  sectionCount: { backgroundColor: Theme.colors.accentGoldMuted, borderRadius: Theme.borderRadius.full, paddingHorizontal: 10, paddingVertical: 4 },
+  sectionCountText: { color: Theme.colors.accentGold, fontSize: 12, fontWeight: '800', fontVariant: ['tabular-nums'] },
+  cardDetailBox: { backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, marginTop: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
+  detailTitle: { color: Theme.colors.textMuted, fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
+  detailValue: { color: Theme.colors.accentGold, fontSize: 17, fontWeight: '700', marginVertical: 6 },
+  detailInstruction: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 20, marginTop: 4 },
   detailRestText: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 4, fontStyle: 'italic' },
   tourPillRow: { flexDirection: 'row', marginTop: 4, marginBottom: 2 },
   tourPill: { backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Theme.borderRadius.sm, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
@@ -643,7 +659,7 @@ const styles = StyleSheet.create({
   ustadTodayTitle: { color: Theme.colors.accentGold, fontSize: 13, fontWeight: '800', letterSpacing: 0.3 },
   ustadTodayTeacher: { color: Theme.colors.textPrimary, fontSize: 14, fontWeight: '800' },
   ustadTodayTiming: { color: Theme.colors.textSecondary, fontSize: 12, marginTop: 2 },
-  ustadTodayFaceBox: { backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: Theme.spacing.sm },
+  ustadTodayFaceBox: { backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.border, marginTop: Theme.spacing.sm },
   ustadTodayLabel: { color: Theme.colors.textSecondary, fontSize: 11, fontWeight: '700', textTransform: 'uppercase' },
   ustadTodayFace: { color: Theme.colors.accentGold, fontSize: 15, fontWeight: '800', marginTop: 4 },
   ustadTodayHint: { color: Theme.colors.textMuted, fontSize: 11, lineHeight: 16, marginTop: 6 },
@@ -654,33 +670,33 @@ const styles = StyleSheet.create({
   dot: { color: Theme.colors.textMuted, fontSize: 12 },
   dayBadgeSmall: { marginLeft: 'auto', backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   dayBadgeSmallText: { color: Theme.colors.accentGold, fontSize: 11, fontWeight: '800' },
-  negligenceRow: { flexDirection: 'row', gap: 8, marginBottom: Theme.spacing.md },
-  negligenceBox: { flex: 0.75, backgroundColor: 'rgba(239,68,68,0.06)', borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.sm, borderWidth: 1, borderColor: 'rgba(239,68,68,0.25)', alignItems: 'center', justifyContent: 'center' },
+  negligenceRow: { flexDirection: 'row', gap: 10, marginBottom: Theme.spacing.md },
+  negligenceBox: { flex: 0.75, backgroundColor: 'rgba(242,109,109,0.06)', borderRadius: Theme.borderRadius.lg, padding: 14, borderWidth: 1, borderColor: 'rgba(242,109,109,0.22)', alignItems: 'center', justifyContent: 'center' },
   negligenceHeader: { flexDirection: 'row', gap: 4, alignItems: 'center' },
-  negligenceTitle: { color: '#EF4444', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
+  negligenceTitle: { color: '#F26D6D', fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
   negligenceTitleGold: { color: Theme.colors.accentGold, fontSize: 10, fontWeight: '800', letterSpacing: 0.5, textTransform: 'uppercase' },
-  negligenceCount: { color: '#EF4444', fontSize: 22, fontWeight: '900', marginTop: 2 },
+  negligenceCount: { color: '#F26D6D', fontSize: 30, fontWeight: '800', marginTop: 4, letterSpacing: -0.5, fontVariant: ['tabular-nums'] },
   negligenceSub: { color: Theme.colors.textSecondary, fontSize: 10, textAlign: 'center', marginTop: 2 },
-  excuseBox: { flex: 1.3, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
-  excuseHint: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 6, textAlign: 'center' },
+  excuseBox: { flex: 1.3, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: 14, borderWidth: 1, borderColor: Theme.colors.border },
+  excuseHint: { color: Theme.colors.textMuted, fontSize: 11.5, lineHeight: 16, marginTop: 8 },
   excuseInlineList: { marginTop: 6, gap: 4 },
-  excuseInlineItem: { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 5, borderWidth: 1, borderColor: Theme.colors.border },
+  excuseInlineItem: { flexDirection: 'row', gap: 6, alignItems: 'center', backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.sm, paddingHorizontal: 8, paddingVertical: 5, borderWidth: 1, borderColor: Theme.colors.border },
   excuseInlineText: { flex: 1, color: Theme.colors.textSecondary, fontSize: 11 },
   excuseMore: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 2, textAlign: 'center' },
-  attendanceBtn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(212,168,67,0.1)', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, paddingVertical: 12, borderRadius: Theme.borderRadius.md, marginTop: Theme.spacing.md },
+  attendanceBtn: { flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(221,178,82,0.1)', borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, paddingVertical: 12, borderRadius: Theme.borderRadius.md, marginTop: Theme.spacing.md },
   attendanceBtnDone: { backgroundColor: Theme.colors.successGreen, borderColor: Theme.colors.successGreen },
   attendanceBtnText: { color: Theme.colors.accentGold, fontSize: 13, fontWeight: '800' },
   attendanceBtnTextDone: { color: Theme.colors.bgDark },
-  confirmBtn: { flexDirection: 'row', gap: 8, backgroundColor: Theme.colors.accentGold, paddingVertical: 16, borderRadius: Theme.borderRadius.md, alignItems: 'center', justifyContent: 'center', marginTop: Theme.spacing.md },
-  confirmBtnDisabled: { backgroundColor: Theme.colors.bgCard, borderWidth: 1, borderColor: Theme.colors.border },
-  confirmBtnText: { color: Theme.colors.bgDark, fontSize: 15, fontWeight: '900' },
+  confirmBtn: { flexDirection: 'row', gap: 8, backgroundColor: Theme.colors.accentGold, paddingVertical: 17, borderRadius: Theme.borderRadius.lg, alignItems: 'center', justifyContent: 'center', marginTop: Theme.spacing.md, ...Theme.shadow.glow },
+  confirmBtnDisabled: { backgroundColor: Theme.colors.bgCard, borderWidth: 1, borderColor: Theme.colors.border, shadowOpacity: 0, elevation: 0 },
+  confirmBtnText: { color: Theme.colors.bgDark, fontSize: 16, fontWeight: '800' },
   confirmBtnTextDisabled: { color: Theme.colors.textMuted },
-  confirmHint: { color: Theme.colors.textMuted, fontSize: 11, textAlign: 'center', marginTop: 6 },
+  confirmHint: { color: Theme.colors.textMuted, fontSize: 12, textAlign: 'center', marginTop: 10 },
   celebrationIconWrap: { width: 72, height: 72, borderRadius: 36, backgroundColor: Theme.colors.accentGoldMuted, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   celebrationConfetti: { fontSize: 44, marginBottom: 4 },
-  celebrationBigTick: { width: 84, height: 84, borderRadius: 42, backgroundColor: Theme.colors.successGreen, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, shadowColor: '#10B981', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
-  celebrationTitle: { color: Theme.colors.textPrimary, fontSize: 28, fontWeight: '900', letterSpacing: 0.5 },
-  celebrationSubtitle: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 20, textAlign: 'center', marginTop: 8 },
+  celebrationBigTick: { width: 84, height: 84, borderRadius: 42, backgroundColor: Theme.colors.successGreen, alignItems: 'center', justifyContent: 'center', marginBottom: Theme.spacing.md, shadowColor: '#2DD4A0', shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 8 },
+  celebrationTitle: { color: Theme.colors.textPrimary, fontSize: 30, fontWeight: '800', letterSpacing: -0.4 },
+  celebrationSubtitle: { color: Theme.colors.textSecondary, fontSize: 14, lineHeight: 22, textAlign: 'center', marginTop: 8 },
   celebrationBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: Theme.colors.accentGold, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, marginTop: Theme.spacing.md },
   celebrationBadgeText: { color: Theme.colors.bgDark, fontSize: 12, fontWeight: '800' },
   celebrationHint: { color: Theme.colors.textMuted, fontSize: 11, marginTop: 10, textAlign: 'center' },
@@ -688,15 +704,15 @@ const styles = StyleSheet.create({
   celebrationUnlockBox: { flexDirection: 'row', gap: 6, alignItems: 'center', marginTop: Theme.spacing.lg },
   celebrationUnlockText: { color: Theme.colors.textMuted, fontSize: 12, fontWeight: '600' },
   excuseOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.72)', justifyContent: 'center', alignItems: 'center', padding: Theme.spacing.lg },
-  excuseCard: { width: '100%', maxWidth: 380, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', alignItems: 'center' },
+  excuseCard: { width: '100%', maxWidth: 380, backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', alignItems: 'center' },
   excuseTitle: { color: Theme.colors.textPrimary, fontSize: 18, fontWeight: '800', marginTop: 8 },
-  excuseProgressPill: { backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
-  excuseProgressText: { color: '#EF4444', fontSize: 11, fontWeight: '800' },
+  excuseProgressPill: { backgroundColor: 'rgba(242,109,109,0.12)', borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 4, marginTop: 8 },
+  excuseProgressText: { color: '#F26D6D', fontSize: 11, fontWeight: '800' },
   excuseSub: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, textAlign: 'center', marginTop: 6 },
-  excuseInputLarge: { width: '100%', backgroundColor: 'rgba(10,22,40,0.6)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, color: Theme.colors.textPrimary, fontSize: 13, borderWidth: 1, borderColor: Theme.colors.border, minHeight: 80, textAlignVertical: 'top', marginTop: Theme.spacing.md },
+  excuseInputLarge: { width: '100%', backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.md, color: Theme.colors.textPrimary, fontSize: 13, borderWidth: 1, borderColor: Theme.colors.border, minHeight: 80, textAlignVertical: 'top', marginTop: Theme.spacing.md },
   excuseActions: { flexDirection: 'row', gap: 8, marginTop: Theme.spacing.md, width: '100%' },
-  excuseNoBtn: { flex: 1, backgroundColor: 'rgba(239,68,68,0.12)', borderWidth: 1, borderColor: 'rgba(239,68,68,0.3)', paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
-  excuseNoText: { color: '#EF4444', fontSize: 13, fontWeight: '800' },
+  excuseNoBtn: { flex: 1, backgroundColor: 'rgba(242,109,109,0.12)', borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
+  excuseNoText: { color: '#F26D6D', fontSize: 13, fontWeight: '800' },
   excuseYesBtn: { flex: 1, backgroundColor: Theme.colors.accentGold, paddingVertical: 12, borderRadius: Theme.borderRadius.md, alignItems: 'center' },
   excuseYesText: { color: Theme.colors.bgDark, fontSize: 13, fontWeight: '800' },
 });

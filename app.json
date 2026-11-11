@@ -2,7 +2,7 @@
   "expo": {
     "name": "Tikrar",
     "slug": "tikrar-app",
-    "version": "1.0.8",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "tikrarapp",
@@ -13,10 +13,10 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundColor": "#0A1628"
+        "backgroundColor": "#070F1C"
       },
       "package": "com.tikrar.app",
-      "versionCode": 8,
+      "versionCode": 9,
       "permissions": [
         "RECORD_AUDIO",
         "android.permission.RECORD_AUDIO",
@@ -38,7 +38,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#0A1628"
+          "backgroundColor": "#070F1C"
         }
       ],
       "expo-sqlite",
@@ -47,7 +47,7 @@
         "expo-notifications",
         {
           "icon": "./assets/images/icon.png",
-          "color": "#D4A843"
+          "color": "#DDB252"
         }
       ],
       [

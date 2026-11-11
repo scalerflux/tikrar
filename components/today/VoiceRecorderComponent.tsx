@@ -237,7 +237,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   activeOpacity={0.7}
                 >
-                  <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                  <Ionicons name="trash-outline" size={16} color="#F26D6D" />
                 </TouchableOpacity>
               </View>
             );
@@ -250,7 +250,7 @@ export const VoiceRecorderComponent: React.FC<VoiceRecorderComponentProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: 'rgba(10, 22, 40, 0.6)',
+    backgroundColor: 'rgba(5,12,24,0.55)',
     borderRadius: Theme.borderRadius.md,
     padding: Theme.spacing.md,
     marginTop: Theme.spacing.sm,
@@ -282,7 +282,7 @@ const styles = StyleSheet.create({
   recordingActiveBtn: {
     backgroundColor: '#DC2626',
     borderWidth: 1,
-    borderColor: '#EF4444',
+    borderColor: '#F26D6D',
   },
   recordBtnText: {
     color: Theme.colors.textPrimary,
@@ -290,7 +290,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   recordBtnDone: {
-    backgroundColor: 'rgba(16,185,129,0.15)',
+    backgroundColor: 'rgba(45,212,160,0.15)',
     borderWidth: 1,
     borderColor: Theme.colors.successGreen,
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   recordingRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(10,22,40,0.6)',
+    backgroundColor: 'rgba(5,12,24,0.55)',
     borderRadius: Theme.borderRadius.sm,
     borderWidth: 1,
     borderColor: Theme.colors.border,

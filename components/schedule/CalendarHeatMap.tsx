@@ -20,9 +20,9 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
   const getDayColor = (dayNum: number) => {
     if (dayNum > totalDays) return Theme.colors.bgCard;
     if (dayNum === currentDay) return Theme.colors.accentGold;
-    if (completedSet.has(dayNum)) return '#1FA774';
-    if (dayNum < currentDay) return '#27364A';
-    return '#122137';
+    if (completedSet.has(dayNum)) return Theme.colors.successGreen;
+    if (dayNum < currentDay) return '#33435C';
+    return '#17253B';
   };
 
   const getDayStatus = (dayNum: number) => {
@@ -46,15 +46,15 @@ export const CalendarHeatMap: React.FC<CalendarHeatMapProps> = ({ completedDays,
             <Text style={styles.legendText}>Today</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: '#1FA774' }]} />
+            <View style={[styles.legendBox, { backgroundColor: Theme.colors.successGreen }]} />
             <Text style={styles.legendText}>Done</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: '#27364A' }]} />
+            <View style={[styles.legendBox, { backgroundColor: '#33435C' }]} />
             <Text style={styles.legendText}>Missed</Text>
           </View>
           <View style={styles.legendItem}>
-            <View style={[styles.legendBox, { backgroundColor: '#122137' }]} />
+            <View style={[styles.legendBox, { backgroundColor: '#17253B' }]} />
             <Text style={styles.legendText}>Ahead</Text>
           </View>
       </View>
@@ -124,10 +124,10 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Theme.colors.textPrimary,
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 16,
+    fontWeight: '800',
   },
-  subtitle: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 3 },
+  subtitle: { color: Theme.colors.textMuted, fontSize: 12, marginTop: 3, marginBottom: 8 },
   legend: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   legendBox: {
-    width: 12,
-    height: 12,
+    width: 10,
+    height: 10,
     borderRadius: 3,
   },
   legendText: {
     color: Theme.colors.textSecondary,
-    fontSize: 9,
+    fontSize: 11,
   },
   expandBtn: {
     flexDirection: 'row',

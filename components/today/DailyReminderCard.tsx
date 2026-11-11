@@ -34,7 +34,7 @@ export function DailyReminderCard({ reminder }: { reminder: DailyReminder | null
       <Text style={styles.text} numberOfLines={expanded ? undefined : 5}>
         {reminder.text}
       </Text>
-      {reminder.source ? <Text style={styles.source}>[{reminder.source}]</Text> : null}
+      {reminder.source ? <Text style={styles.source}>{reminder.source}</Text> : null}
       {isLong && (
         <Text style={styles.more}>{expanded ? 'Show less' : 'Read more'}</Text>
       )}
@@ -46,9 +46,13 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.lg,
-    padding: Theme.spacing.md,
+    paddingVertical: Theme.spacing.md,
+    paddingRight: Theme.spacing.md,
+    paddingLeft: Theme.spacing.md + 4,
     borderWidth: 1,
-    borderColor: Theme.colors.accentGoldBorder,
+    borderColor: Theme.colors.border,
+    borderLeftWidth: 3,
+    borderLeftColor: Theme.colors.accentGold,
     marginBottom: Theme.spacing.md,
   },
   header: {
@@ -57,36 +61,29 @@ const styles = StyleSheet.create({
     gap: 6,
     marginBottom: Theme.spacing.sm,
   },
-  // title removed to avoid duplicate "reminder" word
   label: {
-    color: Theme.colors.textMuted,
+    color: Theme.colors.accentGold,
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 1.2,
     textTransform: 'uppercase',
-    backgroundColor: Theme.colors.accentGoldMuted,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: Theme.borderRadius.sm,
-    overflow: 'hidden',
   },
   text: {
     color: Theme.colors.textPrimary,
-    fontSize: 13,
-    lineHeight: 20,
+    fontSize: 14.5,
+    lineHeight: 23,
     fontStyle: 'italic',
   },
   source: {
     color: Theme.colors.textMuted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    marginTop: Theme.spacing.xs,
-    fontStyle: 'italic',
+    marginTop: Theme.spacing.sm,
   },
   more: {
-    color: Theme.colors.textMuted,
-    fontSize: 11,
+    color: Theme.colors.accentGold,
+    fontSize: 12,
     fontWeight: '700',
-    marginTop: Theme.spacing.xs,
+    marginTop: Theme.spacing.sm,
   },
 });
