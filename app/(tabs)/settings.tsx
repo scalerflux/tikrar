@@ -661,7 +661,10 @@ export default function SettingsScreen() {
               </View>
               <Switch value={addToCalendar} onValueChange={setAddToCalendar} trackColor={{ false: Theme.colors.border, true: Theme.colors.accentGold }} thumbColor={addToCalendar ? '#FFF' : '#888'} />
             </View>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSaveCustomUstad}><Text style={styles.saveBtnText}>Save Ustad</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.saveUstadBtn} onPress={handleSaveCustomUstad} activeOpacity={0.85}>
+              <Ionicons name="checkmark-circle" size={18} color={Theme.colors.bgDark} />
+              <Text style={styles.saveUstadBtnText}>Save Ustad</Text>
+            </TouchableOpacity>
           </TouchableOpacity>
 
           {ustadMode === 'custom' && (
@@ -1050,8 +1053,8 @@ const styles = StyleSheet.create({
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: Theme.spacing.md, marginBottom: 6 },
   fieldLabel: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '800' },
   pickerGroup: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: Theme.borderRadius.md, padding: Theme.spacing.sm, borderWidth: 1, borderColor: Theme.colors.border },
-  summaryStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(221,178,82,0.08)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 8, marginTop: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
-  summaryText: { flex: 1, color: Theme.colors.textPrimary, fontSize: 11, fontWeight: '700' },
+  summaryStrip: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(221,178,82,0.08)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 12, marginTop: Theme.spacing.md, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
+  summaryText: { flex: 1, color: Theme.colors.textPrimary, fontSize: 13, fontWeight: '700' },
   weekdayRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   weekdayChip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: 'rgba(255,255,255,0.04)' },
   weekdayChipActive: { backgroundColor: Theme.colors.accentGoldMuted, borderColor: Theme.colors.accentGold },
@@ -1147,13 +1150,15 @@ const styles = StyleSheet.create({
   },
   ustadCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: 'rgba(221,178,82,0.08)' },
   ustadCardEnhanced: { backgroundColor: 'rgba(10,22,40,0.7)', borderRadius: Theme.borderRadius.lg, padding: Theme.spacing.lg, borderWidth: 1.5, borderColor: Theme.colors.accentGoldBorder, marginTop: 12 },
-  removeUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 8, paddingVertical: 10, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', backgroundColor: 'rgba(242,109,109,0.06)' },
+  removeUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, marginTop: 12, paddingVertical: 13, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: 'rgba(242,109,109,0.3)', backgroundColor: 'rgba(242,109,109,0.06)' },
   removeUstadBtnText: { color: '#F26D6D', fontSize: 13, fontWeight: '700' },
   reciterSelectArea: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingVertical: 4 },
   ustadHeaderEnhanced: { flexDirection: 'row', gap: 10, alignItems: 'center', marginBottom: 6 },
   ustadTitleEnhanced: { flex: 1, color: Theme.colors.textPrimary, fontSize: 16, fontWeight: '900' },
   ustadSubEnhanced: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 18, marginBottom: 14 },
-  calendarRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: Theme.spacing.md, paddingTop: Theme.spacing.sm, borderTopWidth: 1, borderTopColor: Theme.colors.border },
-  calendarLabel: { color: Theme.colors.textSecondary, fontSize: 12, fontWeight: '700' },
-  calendarHint: { color: Theme.colors.textMuted, fontSize: 10, marginTop: 2 },
+  calendarRow: { flexDirection: 'row', alignItems: 'center', gap: 14, marginTop: Theme.spacing.md, paddingTop: Theme.spacing.md, borderTopWidth: 1, borderTopColor: Theme.colors.border },
+  calendarLabel: { color: Theme.colors.textPrimary, fontSize: 14, fontWeight: '700' },
+  calendarHint: { color: Theme.colors.textMuted, fontSize: 12, lineHeight: 17, marginTop: 3 },
+  saveUstadBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: Theme.colors.accentGold, paddingVertical: 15, borderRadius: Theme.borderRadius.md, marginTop: Theme.spacing.lg },
+  saveUstadBtnText: { color: Theme.colors.bgDark, fontSize: 15, fontWeight: '800' },
 });
