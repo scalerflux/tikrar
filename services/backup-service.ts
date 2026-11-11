@@ -27,6 +27,7 @@ function normalizeProgressRow(value: unknown): DailyProgressRow | null {
     'phaseListening',
     'phaseTafseer',
     'phaseRecording',
+    'phaseRepetition',
     'phaseConnection',
     'phaseRevision',
     'isComplete',
@@ -40,6 +41,7 @@ function normalizeProgressRow(value: unknown): DailyProgressRow | null {
     phaseListening: row.phaseListening ?? 0,
     phaseTafseer: row.phaseTafseer ?? 0,
     phaseRecording: row.phaseRecording ?? 0,
+    phaseRepetition: row.phaseRepetition ?? 0,
     phaseConnection: row.phaseConnection ?? 0,
     phaseRevision: row.phaseRevision ?? 0,
     isComplete: row.isComplete ?? 0,
@@ -138,13 +140,14 @@ export class BackupService {
           const row = normalizeProgressRow(rawRow);
           if (!row) continue;
           await db.runAsync(
-            `INSERT OR REPLACE INTO daily_progress (dayNumber, phaseYesterday, phaseListening, phaseTafseer, phaseRecording, phaseConnection, phaseRevision, isComplete, completedDate, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            `INSERT OR REPLACE INTO daily_progress (dayNumber, phaseYesterday, phaseListening, phaseTafseer, phaseRecording, phaseRepetition, phaseConnection, phaseRevision, isComplete, completedDate, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             [
               row.dayNumber,
               row.phaseYesterday ?? 0,
               row.phaseListening ?? 0,
               row.phaseTafseer ?? 0,
               row.phaseRecording ?? 0,
+              row.phaseRepetition ?? 0,
               row.phaseConnection ?? 0,
               row.phaseRevision ?? 0,
               row.isComplete ?? 0,

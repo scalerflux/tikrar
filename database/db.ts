@@ -8,6 +8,8 @@ export interface DailyProgressRow {
   phaseListening: number;
   phaseTafseer: number;
   phaseRecording: number;
+  /** The new face repeated 40 times (the "Repetition" column of the timetable). */
+  phaseRepetition: number;
   phaseConnection: number;
   phaseRevision: number;
   isComplete: number;
@@ -21,7 +23,7 @@ export interface CompletedDay {
   completedDate: string;
 }
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 let dbInstance: SQLite.SQLiteDatabase | null = null;
 let useAsyncStorageFallback = false;
@@ -54,6 +56,7 @@ async function initDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
       phaseListening INTEGER DEFAULT 0,
       phaseTafseer INTEGER DEFAULT 0,
       phaseRecording INTEGER DEFAULT 0,
+      phaseRepetition INTEGER DEFAULT 0,
       phaseConnection INTEGER DEFAULT 0,
       phaseRevision INTEGER DEFAULT 0,
       isComplete INTEGER DEFAULT 0,
@@ -73,6 +76,10 @@ async function migrateDatabase(db: SQLite.SQLiteDatabase): Promise<void> {
   const hasCompletedDate = columns.some((c) => c.name === 'completedDate');
   if (!hasCompletedDate) {
     await db.execAsync('ALTER TABLE daily_progress ADD COLUMN completedDate TEXT');
+  }
+
+  if (!columns.some((c) => c.name === 'phaseRepetition')) {
+    await db.execAsync('ALTER TABLE daily_progress ADD COLUMN phaseRepetition INTEGER DEFAULT 0');
   }
 
   await db.execAsync(`PRAGMA user_version = ${SCHEMA_VERSION}`);
@@ -139,6 +146,7 @@ export async function getDailyProgress(dayNumber: number): Promise<DailyProgress
     phaseListening: 0,
     phaseTafseer: 0,
     phaseRecording: 0,
+    phaseRepetition: 0,
     phaseConnection: 0,
     phaseRevision: 0,
     isComplete: 0,
@@ -150,7 +158,7 @@ export async function getDailyProgress(dayNumber: number): Promise<DailyProgress
   if (db) {
     try {
       const row = await db.getFirstAsync<DailyProgressRow>('SELECT * FROM daily_progress WHERE dayNumber = ?', [dayNumber]);
-      if (row) return row;
+      if (row) return { ...defaultRow, ...row, phaseRepetition: row.phaseRepetition ?? 0 };
       // Missing row is not a SQLite failure — check AsyncStorage without
       // permanently abandoning SQLite.
       try {
@@ -205,14 +213,15 @@ export async function saveDailyProgress(progress: Partial<DailyProgressRow> & { 
     try {
       await db.runAsync(`
         INSERT OR REPLACE INTO daily_progress (
-          dayNumber, phaseYesterday, phaseListening, phaseTafseer, phaseRecording, phaseConnection, phaseRevision, isComplete, completedDate, updatedAt
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          dayNumber, phaseYesterday, phaseListening, phaseTafseer, phaseRecording, phaseRepetition, phaseConnection, phaseRevision, isComplete, completedDate, updatedAt
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `, [
         updated.dayNumber,
         updated.phaseYesterday,
         updated.phaseListening,
         updated.phaseTafseer,
         updated.phaseRecording,
+        updated.phaseRepetition ?? 0,
         updated.phaseConnection,
         updated.phaseRevision,
         updated.isComplete,

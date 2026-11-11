@@ -11,7 +11,7 @@ import { TafseerViewComponent } from '../../components/today/TafseerViewComponen
 import { getScheduleItem, getDisplaySurahName, getPortionKey, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, ScheduleDirection, localDateString, programDateString, parseFajrMinutes } from '../../utils/schedule-calculator';
 import { getReminderForDay, DailyReminder } from '../../utils/reminders';
 import { DailyReminderCard } from '../../components/today/DailyReminderCard';
-import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting, loadScheduleDirection } from '../../database/db';
+import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting, setUserSetting, loadScheduleDirection } from '../../database/db';
 import { AudioService } from '../../services/audio-service';
 import { TranslationService } from '../../services/translation-service';
 import { NegligenceService, Excuse, computeMissedDays } from '../../services/negligence-service';
@@ -92,6 +92,7 @@ export default function TodayScreen() {
   const [currentDateStr, setCurrentDateStr] = useState(localDateString());
   const [timeLeftColor, setTimeLeftColor] = useState('#3DD6A3');
   const [direction, setDirection] = useState<ScheduleDirection>('forward');
+  const [repCount, setRepCount] = useState(0);
   const fajrMinutesRef = useRef(300);
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const confettiSpin = useRef(new Animated.Value(0)).current;
@@ -189,6 +190,8 @@ export default function TodayScreen() {
 
       const prog = await getDailyProgress(day);
       setProgress(prog);
+      const savedReps = parseInt(await getUserSetting(`repetitionCount_${day}`, '0'), 10);
+      setRepCount(Number.isFinite(savedReps) ? Math.max(0, Math.min(40, savedReps)) : 0);
 
       const streakInfo = calculateStreak(completedDateStrings, today);
       setStreak(streakInfo.currentStreak);
@@ -264,6 +267,7 @@ export default function TodayScreen() {
         phaseListening: 0,
         phaseTafseer: 0,
         phaseRecording: 0,
+        phaseRepetition: 0,
         phaseConnection: 0,
         phaseRevision: 0,
         isComplete: 0,
@@ -300,6 +304,13 @@ export default function TodayScreen() {
     await togglePhase(phaseKey);
   };
 
+  const changeRepCount = async (next: number) => {
+    const value = Math.max(0, Math.min(40, next));
+    setRepCount(value);
+    await setUserSetting(`repetitionCount_${currentDay}`, String(value));
+    if (value >= 40) await completePhase('phaseRepetition');
+  };
+
   // Only the phases actually unlocked for today's face are required. Connection
   // unlocks Day 3 and Revision unlocks Day 33, so early days must not wait on
   // phases the user cannot yet check off.
@@ -307,12 +318,12 @@ export default function TodayScreen() {
 
   const hasConnection = Boolean(scheduleItem?.connectionRange && scheduleItem.connectionRange.trim() !== '-');
   const hasRevision = Boolean(scheduleItem?.revisionRange && scheduleItem.revisionRange.trim() !== '-');
-  const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && (!hasConnection || progress.phaseConnection === 1) && (!hasRevision || progress.phaseRevision === 1);
+  const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && progress.phaseRepetition === 1 && (!hasConnection || progress.phaseConnection === 1) && (!hasRevision || progress.phaseRevision === 1);
 
-  const phasesTotal = 4 + (hasConnection ? 1 : 0) + (hasRevision ? 1 : 0);
+  const phasesTotal = 5 + (hasConnection ? 1 : 0) + (hasRevision ? 1 : 0);
   const phasesDone = !progress ? 0 :
     (progress.phaseYesterday === 1 ? 1 : 0) + (progress.phaseListening === 1 ? 1 : 0) +
-    (progress.phaseTafseer === 1 ? 1 : 0) + (progress.phaseRecording === 1 ? 1 : 0) +
+    (progress.phaseTafseer === 1 ? 1 : 0) + (progress.phaseRecording === 1 ? 1 : 0) + (progress.phaseRepetition === 1 ? 1 : 0) +
     (hasConnection && progress.phaseConnection === 1 ? 1 : 0) + (hasRevision && progress.phaseRevision === 1 ? 1 : 0);
 
   // Backward ranges name surahs and faces in memorization order, not pages.
@@ -543,9 +554,34 @@ export default function TodayScreen() {
           <VoiceRecorderComponent dateKey={currentDateStr} onCompleted3Times={() => { completePhase('phaseRecording'); }} />
         </PhaseCard>
 
+        <PhaseCard
+          phaseNumber={5}
+          title="Repetition (40 Times)"
+          subtitle="Repeat today's new face 40 times"
+          iconName="infinite-outline"
+          isCompleted={progress.phaseRepetition === 1}
+          onToggleComplete={() => togglePhase('phaseRepetition')}
+        >
+          <View style={styles.cardDetailBox}>
+            <Text style={styles.detailTitle}>Repetitions of today's face</Text>
+            <Text style={styles.repCount}>{repCount}<Text style={styles.repTotal}> / 40</Text></Text>
+            <View style={styles.repTrack}><View style={[styles.repFill, { width: `${Math.min(100, (repCount / 40) * 100)}%` }]} /></View>
+            <View style={styles.repActions}>
+              <TouchableOpacity style={styles.repBtn} onPress={() => changeRepCount(repCount + 1)} disabled={repCount >= 40} activeOpacity={0.85} accessibilityRole="button" accessibilityLabel="Add one repetition">
+                <Ionicons name="add" size={20} color={Theme.colors.bgDark} />
+                <Text style={styles.repBtnText}>{repCount >= 40 ? 'All 40 done' : 'I repeated it once'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.repUndo} onPress={() => changeRepCount(repCount - 1)} disabled={repCount <= 0} accessibilityRole="button" accessibilityLabel="Remove one repetition">
+                <Ionicons name="remove" size={20} color={Theme.colors.textSecondary} />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.detailInstruction}>Tap once after each full repetition. The phase is checked off when you reach 40.</Text>
+          </View>
+        </PhaseCard>
+
         {hasConnection ? (
           <PhaseCard
-            phaseNumber={5}
+            phaseNumber={6}
             title="30-Day Connection (Rabt)"
             subtitle={`Recite ${rangePrefix}${formatRangeText(scheduleItem.connectionRange)}`}
             iconName="link-outline"
@@ -560,7 +596,7 @@ export default function TodayScreen() {
           </PhaseCard>
         ) : (
           <PhaseCard
-            phaseNumber={5}
+            phaseNumber={6}
             title="30-Day Connection (Rabt)"
             subtitle="Unlocks Day 3"
             iconName="link-outline"
@@ -573,7 +609,7 @@ export default function TodayScreen() {
 
         {hasRevision ? (
           <PhaseCard
-            phaseNumber={6}
+            phaseNumber={7}
             title="Old Memorization Revision"
             subtitle={`Tour #${scheduleItem.tourNumber} • ${rangePrefix}${formatRangeText(scheduleItem.revisionRange)}`}
             iconName="refresh-outline"
@@ -591,7 +627,7 @@ export default function TodayScreen() {
           </PhaseCard>
         ) : (
           <PhaseCard
-            phaseNumber={6}
+            phaseNumber={7}
             title="Old Memorization Revision"
             subtitle="Unlocks Tour 1 Day 33"
             iconName="refresh-outline"
@@ -682,6 +718,14 @@ const styles = StyleSheet.create({
   detailValue: { color: Theme.colors.accentGold, fontSize: 17, fontWeight: '700', marginVertical: 6 },
   detailInstruction: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 20, marginTop: 4 },
   detailRestText: { color: Theme.colors.textSecondary, fontSize: 13, lineHeight: 19, marginTop: 4, fontStyle: 'italic' },
+  repCount: { color: Theme.colors.textPrimary, fontSize: 40, fontWeight: '800', letterSpacing: -1, marginTop: 6, fontVariant: ['tabular-nums'] },
+  repTotal: { color: Theme.colors.textMuted, fontSize: 18, fontWeight: '700' },
+  repTrack: { height: 8, borderRadius: 4, backgroundColor: 'rgba(255,255,255,0.07)', overflow: 'hidden', marginTop: 8 },
+  repFill: { height: 8, borderRadius: 4, backgroundColor: Theme.colors.accentGold },
+  repActions: { flexDirection: 'row', gap: 10, marginTop: Theme.spacing.md, marginBottom: 6 },
+  repBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Theme.colors.accentGold, paddingVertical: 14, borderRadius: Theme.borderRadius.md },
+  repBtnText: { color: Theme.colors.bgDark, fontSize: 15, fontWeight: '800' },
+  repUndo: { width: 52, alignItems: 'center', justifyContent: 'center', borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: Theme.colors.inputBg },
   tourPillRow: { flexDirection: 'row', marginTop: 4, marginBottom: 2 },
   tourPill: { backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Theme.borderRadius.sm, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   tourPillText: { color: Theme.colors.accentGold, fontSize: 12, fontWeight: '700' },

@@ -283,7 +283,7 @@ export default function OnboardingScreen() {
         {page === 4 && (
           <View style={styles.card}>
             <Text style={styles.h2}>Definitions 1 to 3</Text>
-            <Text style={styles.sub}>Six daily phases. First three build the new face.</Text>
+            <Text style={styles.sub}>Seven daily phases. First three build the new face.</Text>
             {DEFINITIONS_A.map((d) => (
               <View key={d.k} style={styles.defCard}><Text style={styles.defName}>{d.k}</Text><Text style={styles.defDesc}>{d.d}</Text></View>
             ))}
@@ -532,7 +532,7 @@ export default function OnboardingScreen() {
 
             <View style={styles.statsRow}>
               <View style={styles.stat}><Text style={styles.statNum}>1,206</Text><Text style={styles.statLbl}>Days</Text></View>
-              <View style={styles.stat}><Text style={styles.statNum}>6</Text><Text style={styles.statLbl}>Phases</Text></View>
+              <View style={styles.stat}><Text style={styles.statNum}>7</Text><Text style={styles.statLbl}>Phases</Text></View>
               <View style={styles.stat}><Text style={styles.statNum}>604</Text><Text style={styles.statLbl}>Pages</Text></View>
             </View>
             <Text style={styles.label}>Program start date</Text>

@@ -441,7 +441,7 @@ export default function SettingsScreen() {
             <Text style={styles.sectionTitle}>Daily Memorization Reminders</Text>
           </View>
           <Text style={styles.sectionSubtitle}>
-            Get a gentle daily reminder to complete your 6 Tikrar phases.
+            Get a gentle daily reminder to complete your 7 Tikrar phases.
           </Text>
 
           <View style={styles.switchRow}>
