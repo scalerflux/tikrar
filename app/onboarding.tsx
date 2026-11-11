@@ -5,9 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Theme } from '../constants/theme';
-import { setUserSetting, getUserSetting, saveDailyProgress } from '../database/db';
-import { isValidLocalDateString, localDateString, getStartDayAfterPriorFace, TOTAL_PROGRAM_DAYS } from '../utils/schedule-calculator';
-import { faceOrdinalForDay, formatFace } from '../utils/face';
+import { setUserSetting, getUserSetting, saveDailyProgress, saveScheduleDirection } from '../database/db';
+import { isValidLocalDateString, localDateString, getStartDayAfterPriorFace, getScheduleItem, ScheduleDirection, TOTAL_PROGRAM_DAYS } from '../utils/schedule-calculator';
 import { RECITERS, ReciterId } from '../services/audio-service';
 import { AudioService } from '../services/audio-service';
 import { CalendarService } from '../services/calendar-service';
@@ -91,6 +90,7 @@ export default function OnboardingScreen() {
   const [countryCode, setCountryCode] = useState('PK');
   const [countrySearch, setCountrySearch] = useState('');
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
+  const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const [priorMode, setPriorMode] = useState<'fresh' | 'prior'>('fresh');
   const [priorPagesInput, setPriorPagesInput] = useState('');
   const [priorHalf, setPriorHalf] = useState<'none' | 'h1' | 'h2'>('none');
@@ -152,6 +152,7 @@ export default function OnboardingScreen() {
       }
     }
     await setUserSetting('hasSeenOnboarding', 'true');
+    await saveScheduleDirection(direction);
     await setUserSetting('startDate', startDate);
     await setUserSetting('reciter', selectedReciter);
     const selectedMode = ustadMode === 'custom' && !customName.trim() ? 'none' : ustadMode;
@@ -191,7 +192,7 @@ export default function OnboardingScreen() {
       // from the next face in the schedule. Everything before it is marked
       // done, so yesterday's repetition, ustad recitation, connection and
       // revision all resolve from the existing schedule data.
-      const startDay = getStartDayAfterPriorFace(priorPages, half) ?? TOTAL_PROGRAM_DAYS + 1;
+      const startDay = getStartDayAfterPriorFace(priorPages, half, direction) ?? TOTAL_PROGRAM_DAYS + 1;
       await setUserSetting('priorMemorizedPages', String(priorPages));
       await setUserSetting('priorMemorizedFace', half ? `${priorPages} ${half}` : String(priorPages));
       for (let d = 1; d < startDay; d++) {
@@ -427,6 +428,35 @@ export default function OnboardingScreen() {
             <Text style={styles.h1}>Ready to begin?</Text>
             <Text style={styles.para}>Your schedule has 1,206 days, 604 pages as 1,206 half-faces, Tour system for revision every 6 days, and 30-day Rabt connection.</Text>
 
+            <Text style={styles.label}>Where do you want to start?</Text>
+            <View style={styles.directionCol}>
+              {([
+                { key: 'forward', title: 'From Al-Fatihah', desc: 'Surah 1 onward, in Mus-haf order.', icon: 'arrow-down-outline' },
+                { key: 'backward', title: 'From An-Nas', desc: 'Last surah first, back to Al-Fatihah. Each surah is still memorized from its beginning.', icon: 'arrow-up-outline' },
+              ] as const).map((opt) => {
+                const active = direction === opt.key;
+                return (
+                  <TouchableOpacity
+                    key={opt.key}
+                    style={[styles.directionCard, active && styles.directionCardActive]}
+                    onPress={() => setDirection(opt.key)}
+                    activeOpacity={0.8}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected: active }}
+                  >
+                    <View style={[styles.directionIcon, active && styles.directionIconActive]}>
+                      <Ionicons name={opt.icon} size={16} color={active ? Theme.colors.bgDark : Theme.colors.accentGold} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.directionTitle}>{opt.title}</Text>
+                      <Text style={styles.directionDesc}>{opt.desc}</Text>
+                    </View>
+                    <Ionicons name={active ? 'radio-button-on' : 'radio-button-off'} size={18} color={Theme.colors.accentGold} />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
             <Text style={styles.label}>Have you memorized any portion of the Quran before?</Text>
             <View style={styles.priorRow}>
               <TouchableOpacity style={[styles.priorBtn, priorMode === 'fresh' && styles.priorBtnActive]} onPress={() => setPriorMode('fresh')}>
@@ -444,7 +474,7 @@ export default function OnboardingScreen() {
                   style={styles.input}
                   value={priorPagesInput}
                   onChangeText={(v) => setPriorPagesInput(v.replace(/[^0-9]/g, ''))}
-                  placeholder="I have memorized up to page (1-604)"
+                  placeholder={direction === 'backward' ? 'Memorized from the end back to page (1-604)' : 'I have memorized up to page (1-604)'}
                   placeholderTextColor={Theme.colors.textMuted}
                   keyboardType="number-pad"
                 />
@@ -485,12 +515,16 @@ export default function OnboardingScreen() {
                 <Text style={styles.hint}>
                   {(() => {
                     const p = parseInt(priorPagesInput, 10);
-                    if (isNaN(p) || p < 1 || p > 604) return 'Enter the page you memorized up to. Everything before it is marked done.';
+                    if (isNaN(p) || p < 1 || p > 604) {
+                      return direction === 'backward'
+                        ? 'Enter the page you have reached, counting back from An-Nas. Everything after it is marked done.'
+                        : 'Enter the page you memorized up to. Everything before it is marked done.';
+                    }
                     const half = priorHalf === 'none' ? null : priorHalf;
-                    const lookedUp = getStartDayAfterPriorFace(p, half);
-                    if (!lookedUp) return `Page ${p} is the end of the Mus-haf — the whole program will be marked complete.`;
-                    const face = formatFace(faceOrdinalForDay(Math.min(lookedUp, 1206)));
-                    return `You will continue from Day ${lookedUp} — Face ${face}. Days 1 to ${lookedUp - 1} will be marked complete.`;
+                    const lookedUp = getStartDayAfterPriorFace(p, half, direction);
+                    if (!lookedUp) return `Page ${p} is the last one in this order, so the whole program will be marked complete.`;
+                    const nextItem = getScheduleItem(lookedUp, direction);
+                    return `You will continue from Day ${lookedUp}, Face ${nextItem?.faceNumber ?? ''} (${nextItem?.surahName ?? ''}). Days 1 to ${lookedUp - 1} will be marked complete.`;
                   })()}
                 </Text>
               </>
@@ -651,6 +685,13 @@ const styles = StyleSheet.create({
   input: { backgroundColor: 'rgba(5,12,24,0.55)', borderRadius: Theme.borderRadius.md, paddingHorizontal: Theme.spacing.md, paddingVertical: 10, color: Theme.colors.textPrimary, borderWidth: 1, borderColor: Theme.colors.border, marginTop: 6, fontSize: 14 },
   hint: { color: Theme.colors.textMuted, fontSize: 11, marginTop: 6, textAlign: 'center' },
   smallLogo: { width: 48, height: 48, alignSelf: 'center', marginTop: Theme.spacing.md, opacity: 0.9 },
+  directionCol: { gap: 8, marginTop: 8, marginBottom: Theme.spacing.md, alignSelf: 'stretch' },
+  directionCard: { flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: Theme.colors.inputBg },
+  directionCardActive: { borderColor: Theme.colors.accentGold, backgroundColor: Theme.colors.accentGoldMuted },
+  directionIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', backgroundColor: Theme.colors.accentGoldMuted },
+  directionIconActive: { backgroundColor: Theme.colors.accentGold },
+  directionTitle: { color: Theme.colors.textPrimary, fontSize: 14, fontWeight: '700' },
+  directionDesc: { color: Theme.colors.textSecondary, fontSize: 12, lineHeight: 17, marginTop: 2 },
   priorRow: { flexDirection: 'row', gap: 8, marginTop: 8 },
   priorBtn: { flex: 1, flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: 'rgba(5,12,24,0.55)' },
   priorBtnActive: { backgroundColor: Theme.colors.accentGold, borderColor: Theme.colors.accentGold },

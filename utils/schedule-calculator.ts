@@ -1,6 +1,7 @@
 import scheduleData from '../data/schedule-data.json';
 import pageAyahMap from '../data/page-ayah-map.json';
 import { SURAH_LIST } from '../data/surah-metadata';
+import { parseFaceRange } from './face';
 
 export interface ScheduleItem {
   dayNumber: number;
@@ -9,16 +10,128 @@ export interface ScheduleItem {
   tourNumber: number;
   revisionRange: string;
   connectionRange: string;
+  /**
+   * Program days (inclusive) whose faces make up the connection / revision
+   * portion. Only set on the backward schedule, where a portion is contiguous
+   * in memorization order but not in Mus-haf page order.
+   */
+  connectionDays?: [number, number];
+  revisionDays?: [number, number];
 }
 
 export const TOTAL_PROGRAM_DAYS = 1206;
 
-export function getScheduleItem(dayNumber: number): ScheduleItem | null {
-  if (dayNumber < 1 || dayNumber > TOTAL_PROGRAM_DAYS) {
+/**
+ * Where the program begins.
+ *  - 'forward':  Al-Fatihah first, following the Mus-haf page order.
+ *  - 'backward': An-Nas first. Surahs run from 114 down to 1, but every surah
+ *    is still memorized from its own beginning to its end.
+ */
+export type ScheduleDirection = 'forward' | 'backward';
+
+export const SCHEDULE_DIRECTION_KEY = 'scheduleDirection';
+
+let activeDirection: ScheduleDirection = 'forward';
+
+export function normalizeScheduleDirection(value: unknown): ScheduleDirection {
+  return value === 'backward' ? 'backward' : 'forward';
+}
+
+export function setScheduleDirection(direction: ScheduleDirection): void {
+  activeDirection = normalizeScheduleDirection(direction);
+}
+
+export function getScheduleDirection(): ScheduleDirection {
+  return activeDirection;
+}
+
+const FORWARD_SCHEDULE = scheduleData as ScheduleItem[];
+let backwardSchedule: ScheduleItem[] | null = null;
+
+/** Program day whose face holds the given face ordinal (see utils/face). */
+function dayForFaceOrdinal(ordinal: number): number {
+  if (ordinal <= 2) return 1;
+  if (ordinal <= 4) return 2;
+  return ordinal - 2;
+}
+
+function clampDay(day: number): number {
+  return Math.max(1, Math.min(TOTAL_PROGRAM_DAYS, day));
+}
+
+/** Forward range ("5 h1 → 17 h1") as the inclusive program days it spans. */
+function rangeToDays(range: string): [number, number] | null {
+  if (!range || !range.trim() || range.trim() === '-') return null;
+  try {
+    const { start, end } = parseFaceRange(range);
+    const a = clampDay(dayForFaceOrdinal(start));
+    const b = clampDay(dayForFaceOrdinal(end));
+    return a <= b ? [a, b] : [b, a];
+  } catch {
     return null;
   }
-  const item = scheduleData.find((d: any) => d.dayNumber === dayNumber);
-  return item ? (item as ScheduleItem) : null;
+}
+
+/**
+ * The backward schedule reuses the same 1,206 faces in a different order.
+ * A face belongs to the surah of its LAST ayah, so each surah opens on the
+ * face where it begins. Faces are then ordered by surah descending and, within
+ * a surah, in normal Mus-haf order. The tour numbers and the size of the
+ * connection and revision windows are taken from the same program day of the
+ * forward schedule, so the daily workload matches the original program.
+ */
+function buildBackwardSchedule(): ScheduleItem[] {
+  const keyed = FORWARD_SCHEDULE.map((item, index) => {
+    const ayahs = getAyahListForFace(item.faceNumber);
+    const surah = ayahs.length > 0 ? ayahs[ayahs.length - 1].surah : 0;
+    return { item, index, surah };
+  });
+  keyed.sort((a, b) => (b.surah - a.surah) || (a.index - b.index));
+
+  const faces = keyed.map((k) => k.item);
+  const describe = (days: [number, number] | null): string => {
+    if (!days) return '';
+    const first = faces[days[0] - 1].faceNumber;
+    const last = faces[days[1] - 1].faceNumber;
+    return days[0] === days[1] ? first : `${first} → ${last}`;
+  };
+
+  return faces.map((face, i) => {
+    const template = FORWARD_SCHEDULE[i];
+    const connectionDays = rangeToDays(template.connectionRange);
+    const revisionDays = rangeToDays(template.revisionRange);
+    const result: ScheduleItem = {
+      dayNumber: i + 1,
+      faceNumber: face.faceNumber,
+      surahName: face.surahName,
+      tourNumber: template.tourNumber,
+      revisionRange: describe(revisionDays),
+      connectionRange: describe(connectionDays),
+    };
+    if (connectionDays) result.connectionDays = connectionDays;
+    if (revisionDays) result.revisionDays = revisionDays;
+    return result;
+  });
+}
+
+/** The full 1,206-day schedule for a direction (defaults to the active one). */
+export function getSchedule(direction: ScheduleDirection = activeDirection): ScheduleItem[] {
+  if (direction !== 'backward') return FORWARD_SCHEDULE;
+  if (!backwardSchedule) backwardSchedule = buildBackwardSchedule();
+  return backwardSchedule;
+}
+
+export function getScheduleItem(
+  dayNumber: number,
+  direction: ScheduleDirection = activeDirection
+): ScheduleItem | null {
+  if (!Number.isInteger(dayNumber) || dayNumber < 1 || dayNumber > TOTAL_PROGRAM_DAYS) {
+    return null;
+  }
+  const schedule = getSchedule(direction);
+  const byIndex = schedule[dayNumber - 1];
+  if (byIndex && byIndex.dayNumber === dayNumber) return byIndex;
+  return schedule.find((d) => d.dayNumber === dayNumber) ?? null;
 }
 
 export function getUstadRecitationItem(dayNumber: number): ScheduleItem | null {
@@ -150,29 +263,35 @@ function normalizeFaceKey(face: string): string {
 /**
  * The program day a user should continue from when they have already
  * memorized up to `page` (optionally only half of it). The entered face is
- * considered memorized, so the returned day is the schedule day of the NEXT
- * new face:
- *  - half 'h1' → the day of "N h2" (first half already memorized)
- *  - half 'h2' → the first face of page N+1
- *  - no half   → the first face of page N+1 (whole page memorized)
+ * considered memorized, so the returned day is the one right after it in the
+ * chosen direction's schedule:
+ *  - half 'h1' or 'h2' → the day after that half-page
+ *  - no half           → the day after the whole page (its later half)
  * Everything before that day is marked complete, so phase 1 (yesterday's
  * repetition), ustad recitation, connection and revision all resolve from
- * the existing schedule data. Returns null when the Mush-haf is finished
- * (page 604 entered).
+ * the schedule. Going forward that means "memorized from Al-Fatihah up to
+ * this page"; going backward it means "memorized from An-Nas back to this
+ * page". Returns null when nothing is left to memorize.
  */
-export function getStartDayAfterPriorFace(page: number, half: 'h1' | 'h2' | null): number | null {
+export function getStartDayAfterPriorFace(
+  page: number,
+  half: 'h1' | 'h2' | null,
+  direction: ScheduleDirection = activeDirection
+): number | null {
   if (!Number.isInteger(page) || page < 1 || page > 604) return null;
-  const items = scheduleData as ScheduleItem[];
 
-  if (half === 'h1') {
-    const secondHalf = items.find((d) => normalizeFaceKey(d.faceNumber) === `${page} h2`);
-    if (secondHalf) return secondHalf.dayNumber;
+  let lastDay = 0;
+  for (const item of getSchedule(direction)) {
+    if (getSurahPageNumber(item.faceNumber) !== page) continue;
+    const key = normalizeFaceKey(item.faceNumber);
+    const isWholePage = !/h[12]$/.test(key);
+    if (half && !isWholePage && !key.endsWith(half)) continue;
+    if (item.dayNumber > lastDay) lastDay = item.dayNumber;
   }
+  if (lastDay === 0) return null;
 
-  const nextPage = items.find((d) => getSurahPageNumber(d.faceNumber) === page + 1);
-  if (nextPage) return nextPage.dayNumber;
-
-  return null;
+  const startDay = lastDay + 1;
+  return startDay > TOTAL_PROGRAM_DAYS ? null : startDay;
 }
 
 interface PageAyahInfo {
@@ -242,4 +361,20 @@ export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
     endAyah: list[list.length - 1].ayah,
     totalAyahs: list.length,
   };
+}
+
+/**
+ * A readable title for a schedule day. The source data labels the short
+ * surahs at the end of the Mus-haf as "Group of Surahs", so those faces are
+ * named after the surahs they actually contain.
+ */
+export function getDisplaySurahName(item: Pick<ScheduleItem, 'surahName' | 'faceNumber'>): string {
+  if (item.surahName !== 'Group of Surahs') return item.surahName;
+  const numbers = [...new Set(getAyahListForFace(item.faceNumber).map((a) => a.surah))];
+  const names = numbers
+    .map((n) => SURAH_LIST[n - 1]?.transliteration)
+    .filter((n): n is string => Boolean(n));
+  if (names.length === 0) return item.surahName;
+  if (names.length <= 2) return names.join(' · ');
+  return `${names[0]} to ${names[names.length - 1]}`;
 }

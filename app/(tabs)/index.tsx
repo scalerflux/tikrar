@@ -8,10 +8,10 @@ import { PhaseCard } from '../../components/today/PhaseCard';
 import { AudioPlayerComponent } from '../../components/today/AudioPlayerComponent';
 import { VoiceRecorderComponent } from '../../components/today/VoiceRecorderComponent';
 import { TafseerViewComponent } from '../../components/today/TafseerViewComponent';
-import { getScheduleItem, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, localDateString } from '../../utils/schedule-calculator';
+import { getScheduleItem, getDisplaySurahName, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, ScheduleDirection, localDateString } from '../../utils/schedule-calculator';
 import { getReminderForDay, DailyReminder } from '../../utils/reminders';
 import { DailyReminderCard } from '../../components/today/DailyReminderCard';
-import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting } from '../../database/db';
+import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting, loadScheduleDirection } from '../../database/db';
 import { AudioService } from '../../services/audio-service';
 import { TranslationService } from '../../services/translation-service';
 import { NegligenceService, Excuse, computeMissedDays } from '../../services/negligence-service';
@@ -19,6 +19,13 @@ import { UstadSessionService, getUstadSessionDays } from '../../services/ustad-s
 import { NotificationService } from '../../services/notification-service';
 import { getDeviceUtcOffsetHour } from '../../utils/timezone';
 import { Ionicons } from '@expo/vector-icons';
+
+function describePortionDays(days?: [number, number]): string {
+  if (!days) return '';
+  return days[0] === days[1]
+    ? ` This is the face of Day ${days[0]} in your schedule.`
+    : ` These are the faces of Day ${days[0]} to Day ${days[1]} in your schedule, in the order you memorized them.`;
+}
 
 function formatRangeText(rangeStr: string): string {
   if (!rangeStr) return '';
@@ -84,10 +91,14 @@ export default function TodayScreen() {
   const [ustadAttended, setUstadAttended] = useState(false);
   const [currentDateStr, setCurrentDateStr] = useState(localDateString());
   const [timeLeftColor, setTimeLeftColor] = useState('#2DD4A0');
+  const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const fajrMinutesRef = useRef(300);
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const confettiSpin = useRef(new Animated.Value(0)).current;
   const lastDateRef = useRef(localDateString());
+  const hasLoadedRef = useRef(false);
+  // Latest progress row, so quick successive taps never write a stale copy.
+  const progressRef = useRef<DailyProgressRow | null>(null);
   const confirmedTodayRef = useRef(false);
   // Dates the user already answered this session, so a concurrent
   // loadTodayData run can never re-prompt them.
@@ -144,8 +155,11 @@ export default function TodayScreen() {
 
   const loadTodayData = async () => {
     try {
-      setLoading(true);
+      // Only block the screen on the first load. Later refreshes (tab focus,
+      // date rollover) update in place so open cards and audio are kept.
+      if (!hasLoadedRef.current) setLoading(true);
       const today = localDateString();
+      setDirection(await loadScheduleDirection());
       const savedFajrTime = await getUserSetting('fajrTime', '05:00');
       const fajrMatch = savedFajrTime.match(/^(\d{2}):(\d{2})$/);
       if (fajrMatch) {
@@ -258,26 +272,40 @@ export default function TodayScreen() {
         updatedAt: new Date().toISOString(),
       });
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   };
 
   const togglePhase = async (phaseKey: keyof DailyProgressRow) => {
-    if (!progress) return;
+    const current = progressRef.current;
+    if (!current) return;
     try {
-      const currentValue = progress[phaseKey] as number;
-      const newValue = currentValue === 1 ? 0 : 1;
-      const updated = { ...progress, [phaseKey]: newValue };
-      const saved = await saveDailyProgress({ ...updated, isComplete: 0 } as any);
-      setProgress({ ...saved, isComplete: 0 });
+      const newValue = (current[phaseKey] as number) === 1 ? 0 : 1;
+      const updated = { ...current, [phaseKey]: newValue, isComplete: 0 } as DailyProgressRow;
+      // Update optimistically so the next tap builds on this one.
+      progressRef.current = updated;
+      setProgress(updated);
+      await saveDailyProgress(updated);
     } catch (e) {
       console.warn('Error toggling phase:', e);
     }
   };
 
+  // Used by the audio player and recorder when they reach 3 repetitions.
+  // Unlike togglePhase it can only switch a phase on, so a 4th listen or a
+  // callback captured by an earlier render can never un-check the phase.
+  const completePhase = async (phaseKey: keyof DailyProgressRow) => {
+    const current = progressRef.current;
+    if (!current || (current[phaseKey] as number) === 1) return;
+    await togglePhase(phaseKey);
+  };
+
   // Only the phases actually unlocked for today's face are required. Connection
   // unlocks Day 3 and Revision unlocks Day 33, so early days must not wait on
   // phases the user cannot yet check off.
+  progressRef.current = progress;
+
   const hasConnection = Boolean(scheduleItem?.connectionRange && scheduleItem.connectionRange.trim() !== '-');
   const hasRevision = Boolean(scheduleItem?.revisionRange && scheduleItem.revisionRange.trim() !== '-');
   const allPhasesDone = !!progress && progress.phaseYesterday === 1 && progress.phaseListening === 1 && progress.phaseTafseer === 1 && progress.phaseRecording === 1 && (!hasConnection || progress.phaseConnection === 1) && (!hasRevision || progress.phaseRevision === 1);
@@ -411,7 +439,7 @@ export default function TodayScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <DayHeader
           dayNumber={currentDay}
-          surahName={scheduleItem.surahName}
+          surahName={getDisplaySurahName(scheduleItem)}
           faceNumber={scheduleItem.faceNumber}
           tourNumber={scheduleItem.tourNumber}
           streak={streak}
@@ -419,6 +447,7 @@ export default function TodayScreen() {
           timeLeftColor={timeLeftColor}
           phasesDone={phasesDone}
           phasesTotal={phasesTotal}
+          reverse={direction === 'backward'}
         />
 
         <DailyReminderCard reminder={reminder} />
@@ -486,19 +515,19 @@ export default function TodayScreen() {
           <AudioPlayerComponent
             surahName={scheduleItem.surahName}
             faceNumber={scheduleItem.faceNumber}
-            onCompleted3Times={() => { if (progress.phaseListening === 0) togglePhase('phaseListening'); }}
+            onCompleted3Times={() => { completePhase('phaseListening'); }}
           />
         </PhaseCard>
 
         <PhaseCard
           phaseNumber={3}
           title="Tafseer & Meaning"
-          subtitle="Read English translation & commentary (Tafseer As-Sa'di)"
+          subtitle="Read the meaning, then the tafseer (As-Sa'di)"
           iconName="book-outline"
           isCompleted={progress.phaseTafseer === 1}
           onToggleComplete={() => togglePhase('phaseTafseer')}
         >
-          <TafseerViewComponent surahName={scheduleItem.surahName} />
+          <TafseerViewComponent surahName={scheduleItem.surahName} faceNumber={scheduleItem.faceNumber} />
         </PhaseCard>
 
         <PhaseCard
@@ -509,7 +538,7 @@ export default function TodayScreen() {
           isCompleted={progress.phaseRecording === 1}
           onToggleComplete={() => togglePhase('phaseRecording')}
         >
-          <VoiceRecorderComponent dateKey={currentDateStr} onCompleted3Times={() => { if (progress.phaseRecording === 0) togglePhase('phaseRecording'); }} />
+          <VoiceRecorderComponent dateKey={currentDateStr} onCompleted3Times={() => { completePhase('phaseRecording'); }} />
         </PhaseCard>
 
         {hasConnection ? (
@@ -524,7 +553,7 @@ export default function TodayScreen() {
             <View style={styles.cardDetailBox}>
               <Text style={styles.detailTitle}>Pages to Recite (Previous 30 Days):</Text>
               <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.connectionRange)}</Text>
-              <Text style={styles.detailInstruction}>Recite this entire 30-day perfected window once from memory without looking at the Mus-haf.</Text>
+              <Text style={styles.detailInstruction}>Recite this entire 30-day perfected window once from memory without looking at the Mus-haf.{describePortionDays(scheduleItem.connectionDays)}</Text>
             </View>
           </PhaseCard>
         ) : (
@@ -555,7 +584,7 @@ export default function TodayScreen() {
                 <View style={styles.tourPill}><Text style={styles.tourPillText}>Tour #{scheduleItem.tourNumber}</Text></View>
               </View>
               <Text style={styles.detailValue}>Pages {formatRangeText(scheduleItem.revisionRange)}</Text>
-              <Text style={styles.detailInstruction}>Recite this assigned slice from memory without looking at the Mus-haf. You will complete your entire old memorization every 6 days.</Text>
+              <Text style={styles.detailInstruction}>Recite this assigned slice from memory without looking at the Mus-haf. You will complete your entire old memorization every 6 days.{describePortionDays(scheduleItem.revisionDays)}</Text>
             </View>
           </PhaseCard>
         ) : (

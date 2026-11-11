@@ -3,8 +3,8 @@ import { StyleSheet, View, Text, ScrollView, TouchableOpacity, Alert, TextInput,
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { Theme } from '../../constants/theme';
-import { getUserSetting, setUserSetting } from '../../database/db';
-import { isValidLocalDateString, localDateString } from '../../utils/schedule-calculator';
+import { getUserSetting, setUserSetting, getAllCompletedDays, loadScheduleDirection, saveScheduleDirection } from '../../database/db';
+import { isValidLocalDateString, localDateString, ScheduleDirection, setScheduleDirection } from '../../utils/schedule-calculator';
 import { NotificationService } from '../../services/notification-service';
 import { RECITERS, ReciterId, AudioService } from '../../services/audio-service';
 import { BackupService } from '../../services/backup-service';
@@ -40,6 +40,8 @@ export default function SettingsScreen() {
   const router = useRouter();
   const [startDate, setStartDate] = useState('');
   const [fajrTime, setFajrTime] = useState('05:00');
+  const [direction, setDirection] = useState<ScheduleDirection>('forward');
+  const [hasProgress, setHasProgress] = useState(false);
   const [reciterId, setReciterId] = useState<ReciterId>('qahtani');
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifTime, setNotifTime] = useState('06:00');
@@ -89,6 +91,12 @@ export default function SettingsScreen() {
     const savedDate = await getUserSetting('startDate', localDateString());
     setStartDate(savedDate.split('T')[0]);
     setFajrTime(await getUserSetting('fajrTime', '05:00'));
+    setDirection(await loadScheduleDirection());
+    try {
+      setHasProgress((await getAllCompletedDays()).length > 0);
+    } catch {
+      setHasProgress(false);
+    }
 
     const savedReciterRaw = await getUserSetting('reciter', 'qahtani');
     const savedReciter = savedReciterRaw === 'qatami' ? 'qahtani' : savedReciterRaw;
@@ -382,6 +390,20 @@ export default function SettingsScreen() {
     ]);
   };
 
+  const handleChangeDirection = async (next: ScheduleDirection) => {
+    if (next === direction) return;
+    if (hasProgress) {
+      Alert.alert(
+        'Progress already recorded',
+        'The starting point decides which face belongs to each day, so it can only be changed before any day is completed. Export a backup and clear your data to start again in the other order.'
+      );
+      return;
+    }
+    await saveScheduleDirection(next);
+    setDirection(next);
+    setToastMessage(next === 'backward' ? 'Starting from An-Nas' : 'Starting from Al-Fatihah');
+  };
+
   const handleClearData = async () => {
     Alert.alert('Clear All Data', 'Delete all progress and settings? This cannot be undone. Export first if needed.', [
       { text: 'Cancel', style: 'cancel' },
@@ -390,8 +412,10 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await BackupService.clearAllData();
+          setScheduleDirection('forward');
           setBackupStatus('All data cleared');
-          Alert.alert('Cleared', 'All progress has been deleted. App will restart on next tab focus.');
+          // Settings are gone too, so send the user back through setup.
+          (router as any).replace('/onboarding');
         },
       },
     ]);
@@ -459,6 +483,40 @@ export default function SettingsScreen() {
             <Ionicons name="paper-plane-outline" size={16} color={Theme.colors.accentGold} />
             <Text style={styles.testNotifBtnText}>Send Test Notification</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* Starting point */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="swap-vertical-outline" size={20} color={Theme.colors.accentGold} />
+            <Text style={styles.sectionTitle}>Starting Point</Text>
+          </View>
+          <Text style={styles.sectionSubtitle}>
+            {hasProgress
+              ? 'Locked once a day is completed, because it decides which face belongs to each day.'
+              : 'Choose which end of the Quran your 1,206 days begin from.'}
+          </Text>
+          <View style={styles.directionRow}>
+            {([
+              { key: 'forward', label: 'From Al-Fatihah', icon: 'arrow-down-outline' },
+              { key: 'backward', label: 'From An-Nas', icon: 'arrow-up-outline' },
+            ] as const).map((opt) => {
+              const active = direction === opt.key;
+              return (
+                <TouchableOpacity
+                  key={opt.key}
+                  style={[styles.directionBtn, active && styles.directionBtnActive, hasProgress && !active && styles.directionBtnLocked]}
+                  onPress={() => handleChangeDirection(opt.key)}
+                  activeOpacity={0.8}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected: active, disabled: hasProgress && !active }}
+                >
+                  <Ionicons name={opt.icon} size={15} color={active ? Theme.colors.bgDark : Theme.colors.textSecondary} />
+                  <Text style={[styles.directionBtnText, active && styles.directionBtnTextActive]}>{opt.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
 
         {/* Start Date Setting */}
@@ -785,6 +843,38 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
     marginTop: 2,
     marginBottom: Theme.spacing.md,
+  },
+  directionRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  directionBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: Theme.borderRadius.md,
+    borderWidth: 1,
+    borderColor: Theme.colors.border,
+    backgroundColor: Theme.colors.inputBg,
+  },
+  directionBtnActive: {
+    backgroundColor: Theme.colors.accentGold,
+    borderColor: Theme.colors.accentGold,
+  },
+  directionBtnLocked: {
+    opacity: 0.5,
+  },
+  directionBtnText: {
+    color: Theme.colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  directionBtnTextActive: {
+    color: Theme.colors.bgDark,
   },
   sectionCard: {
     backgroundColor: Theme.colors.bgCard,

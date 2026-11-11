@@ -3,10 +3,9 @@ import { StyleSheet, View, Text, ScrollView, ActivityIndicator, TouchableOpacity
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Theme } from '../../constants/theme';
-import { getAllCompletedDaysWithDates, getUserSetting } from '../../database/db';
-import { calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS, localDateString, parseLocalDateString, daysBetweenDates } from '../../utils/schedule-calculator';
+import { getAllCompletedDaysWithDates, getUserSetting, loadScheduleDirection } from '../../database/db';
+import { calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS, localDateString, parseLocalDateString, daysBetweenDates, getSchedule, ScheduleDirection } from '../../utils/schedule-calculator';
 import { SURAH_LIST } from '../../data/surah-metadata';
-import scheduleData from '../../data/schedule-data.json';
 import { Ionicons } from '@expo/vector-icons';
 import { ProgressRing } from '../../components/progress/ProgressRing';
 import { UstadSessionService, UstadSession, getUstadSessionDays } from '../../services/ustad-session-service';
@@ -39,9 +38,10 @@ export default function ProgressScreen() {
   const [view, setView] = useState<'quran' | 'ustad'>('quran');
   const [ustadName, setUstadName] = useState('');
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
+  const [direction, setDirection] = useState<ScheduleDirection>('forward');
 
   const loadProgressData = async () => {
-    setLoading(true);
+    setDirection(await loadScheduleDirection());
     const completed = await getAllCompletedDaysWithDates();
     const nums = completed.map((c) => c.dayNumber);
     setCompletedDays(nums);
@@ -137,7 +137,7 @@ export default function ProgressScreen() {
       return aliases[k] ?? k;
     };
     const counts = new Map<string, { total: number; done: number }>();
-    for (const row of scheduleData as any[]) {
+    for (const row of getSchedule(direction)) {
       const name: string = row.surahName;
       if (name === 'Group of Surahs') continue;
       const key = canonical(name);
@@ -153,7 +153,7 @@ export default function ProgressScreen() {
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
       return { surah: s, total, done, pct, isCompleted: total > 0 && done === total, isStarted: done > 0 };
     });
-  }, [completedSet]);
+  }, [completedSet, direction]);
 
   if (loading) {
     return (

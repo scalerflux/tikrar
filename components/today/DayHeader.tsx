@@ -13,6 +13,8 @@ interface DayHeaderProps {
   timeLeftColor: string;
   phasesDone?: number;
   phasesTotal?: number;
+  /** True when the program runs from An-Nas back to Al-Fatihah. */
+  reverse?: boolean;
 }
 
 function formatFace(face: string): string {
@@ -30,6 +32,7 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
   timeLeftColor,
   phasesDone = 0,
   phasesTotal = 0,
+  reverse = false,
 }) => {
   const today = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
   const pct = phasesTotal > 0 ? Math.min(100, Math.round((phasesDone / phasesTotal) * 100)) : 0;
@@ -74,6 +77,12 @@ export const DayHeader: React.FC<DayHeaderProps> = ({
             <Ionicons name="sync-outline" size={12} color={Theme.colors.textSecondary} />
             <Text style={styles.metaText}>Tour #{tourNumber}</Text>
           </View>
+          {reverse ? (
+            <View style={styles.metaChip}>
+              <Ionicons name="swap-vertical-outline" size={12} color={Theme.colors.accentGold} />
+              <Text style={styles.metaText}>From An-Nas</Text>
+            </View>
+          ) : null}
         </View>
 
         {phasesTotal > 0 ? (

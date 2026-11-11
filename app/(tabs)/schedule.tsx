@@ -3,20 +3,27 @@ import { StyleSheet, View, Text, FlatList, TextInput, TouchableOpacity } from 'r
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { Theme } from '../../constants/theme';
-import scheduleData from '../../data/schedule-data.json';
 import { Ionicons } from '@expo/vector-icons';
 import { CalendarHeatMap } from '../../components/schedule/CalendarHeatMap';
-import { getAllCompletedDaysWithDates } from '../../database/db';
-import { calculateCurrentDay } from '../../utils/schedule-calculator';
+import { getAllCompletedDaysWithDates, loadScheduleDirection } from '../../database/db';
+import { calculateCurrentDay, getDisplaySurahName, getSchedule, ScheduleDirection, ScheduleItem } from '../../utils/schedule-calculator';
+
+const ROW_HEIGHT = 76;
+const ROW_GAP = 8;
+const ROW_STRIDE = ROW_HEIGHT + ROW_GAP;
 
 export default function ScheduleScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [currentDay, setCurrentDay] = useState(1);
+  const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const flatListRef = useRef<FlatList>(null);
+  const headerHeightRef = useRef(0);
+  const scheduleData = useMemo<ScheduleItem[]>(() => getSchedule(direction), [direction]);
   const completedSet = useMemo(() => new Set(completedDays), [completedDays]);
 
   const loadData = async () => {
+    setDirection(await loadScheduleDirection());
     const completed = await getAllCompletedDaysWithDates();
     const nums = completed.map((c) => c.dayNumber);
     setCompletedDays(nums);
@@ -31,17 +38,18 @@ export default function ScheduleScreen() {
   );
 
   const filteredSchedule = useMemo(() => {
-    if (!searchQuery) return scheduleData as any[];
+    if (!searchQuery) return scheduleData;
     const query = searchQuery.toLowerCase();
-    return (scheduleData as any[]).filter((item) => {
+    return scheduleData.filter((item) => {
       return (
         item.dayNumber.toString().includes(query) ||
         item.surahName.toLowerCase().includes(query) ||
+        getDisplaySurahName(item).toLowerCase().includes(query) ||
         item.faceNumber.toLowerCase().includes(query) ||
         String(item.tourNumber).includes(query)
       );
     });
-  }, [searchQuery]);
+  }, [searchQuery, scheduleData]);
 
   const getRowStatus = (dayNumber: number) => {
     if (dayNumber === currentDay) return 'today';
@@ -50,25 +58,26 @@ export default function ScheduleScreen() {
     return 'upcoming';
   };
 
-  const scrollToToday = () => {
-    const index = filteredSchedule.findIndex((i) => i.dayNumber === currentDay);
-    if (index >= 0 && flatListRef.current) {
-      try {
-        flatListRef.current.scrollToIndex({ index, animated: true, viewPosition: 0.5 });
-      } catch {
-        flatListRef.current.scrollToOffset({ offset: index * 76, animated: true });
-      }
-    } else if (flatListRef.current) {
-      const allIndex = (scheduleData as any[]).findIndex((i) => i.dayNumber === currentDay);
-      try {
-        flatListRef.current.scrollToIndex({ index: allIndex, animated: true, viewPosition: 0.5 });
-      } catch {
-        flatListRef.current.scrollToOffset({ offset: allIndex * 76, animated: true });
-      }
-    }
+  const scrollToDay = (list: ScheduleItem[]) => {
+    const index = list.findIndex((i) => i.dayNumber === currentDay);
+    if (index < 0 || !flatListRef.current) return;
+    // Rows have a fixed height, so the offset is exact and does not depend on
+    // which rows FlatList has already measured.
+    const offset = headerHeightRef.current + index * ROW_STRIDE - 160;
+    flatListRef.current.scrollToOffset({ offset: Math.max(0, offset), animated: true });
   };
 
-  const renderItem = ({ item }: { item: any }) => {
+  const scrollToToday = () => {
+    if (filteredSchedule.some((i) => i.dayNumber === currentDay)) {
+      scrollToDay(filteredSchedule);
+      return;
+    }
+    // Today is hidden by the current search, so clear it first.
+    setSearchQuery('');
+    setTimeout(() => scrollToDay(scheduleData), 60);
+  };
+
+  const renderItem = ({ item }: { item: ScheduleItem }) => {
     const status = getRowStatus(item.dayNumber);
     const isToday = status === 'today';
     const isCompleted = status === 'completed';
@@ -89,7 +98,7 @@ export default function ScheduleScreen() {
 
         <View style={styles.centerCol}>
           <View style={styles.nameRow}>
-            <Text style={styles.surahName} numberOfLines={1}>{item.surahName}</Text>
+            <Text style={styles.surahName} numberOfLines={1}>{getDisplaySurahName(item)}</Text>
             {isToday ? <Text style={[styles.statusPill, styles.statusBadgeToday]}>TODAY</Text> : null}
             {isCompleted ? <Text style={[styles.statusPill, styles.statusBadgeDone]}>DONE</Text> : null}
             {isMissed ? <Text style={[styles.statusPill, styles.statusBadgeMissed]}>MISSED</Text> : null}
@@ -120,7 +129,7 @@ export default function ScheduleScreen() {
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <View>
-            <Text style={styles.headerOverline}>1,206-day plan</Text>
+            <Text style={styles.headerOverline}>{direction === 'backward' ? '1,206-day plan · from An-Nas' : '1,206-day plan'}</Text>
             <Text style={styles.headerTitle}>Schedule</Text>
           </View>
           <TouchableOpacity style={styles.todayBtn} onPress={scrollToToday} activeOpacity={0.7}>
@@ -139,8 +148,9 @@ export default function ScheduleScreen() {
           initialNumToRender={20}
           maxToRenderPerBatch={30}
           windowSize={10}
+          keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
-            <>
+            <View onLayout={(e) => { headerHeightRef.current = e.nativeEvent.layout.height; }}>
               <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
               <View style={styles.searchBar}>
                 <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
@@ -157,7 +167,7 @@ export default function ScheduleScreen() {
                   </TouchableOpacity>
                 ) : null}
               </View>
-            </>
+            </View>
           }
           ListEmptyComponent={
             <View style={styles.emptyBox}>
@@ -250,9 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Theme.colors.bgCard,
     borderRadius: Theme.borderRadius.md,
-    paddingVertical: 12,
+    height: ROW_HEIGHT,
     paddingHorizontal: 14,
-    marginBottom: 8,
+    marginBottom: ROW_GAP,
     borderWidth: 1,
     borderColor: Theme.colors.border,
     gap: 12,

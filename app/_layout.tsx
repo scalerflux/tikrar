@@ -44,6 +44,10 @@ export default function RootLayout() {
     }
     (async () => {
       try {
+        try {
+          const db = await import('../database/db');
+          await db.loadScheduleDirection();
+        } catch {}
         let seen: string | null = null;
         try {
           seen = await AsyncStorage.getItem('setting_hasSeenOnboarding');

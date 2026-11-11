@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { localDateString } from '../utils/schedule-calculator';
+import { localDateString, normalizeScheduleDirection, setScheduleDirection, ScheduleDirection, SCHEDULE_DIRECTION_KEY } from '../utils/schedule-calculator';
 
 export interface DailyProgressRow {
   dayNumber: number;
@@ -283,4 +283,23 @@ export async function getAllCompletedDaysWithDates(): Promise<CompletedDay[]> {
   }
 
   return sqliteFailed ? [] : sqliteRows;
+}
+
+/**
+ * Read the saved memorization direction and make it the active one for all
+ * schedule lookups. Call before resolving any schedule day.
+ */
+export async function loadScheduleDirection(): Promise<ScheduleDirection> {
+  let direction: ScheduleDirection = 'forward';
+  try {
+    direction = normalizeScheduleDirection(await getUserSetting(SCHEDULE_DIRECTION_KEY, 'forward'));
+  } catch {}
+  setScheduleDirection(direction);
+  return direction;
+}
+
+export async function saveScheduleDirection(direction: ScheduleDirection): Promise<void> {
+  const normalized = normalizeScheduleDirection(direction);
+  await setUserSetting(SCHEDULE_DIRECTION_KEY, normalized);
+  setScheduleDirection(normalized);
 }

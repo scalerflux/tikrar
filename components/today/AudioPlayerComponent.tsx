@@ -58,6 +58,9 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
   );
 
   useEffect(() => {
+    // A new face starts its own count of three listens.
+    setListenCount(0);
+    setCurrentAyahIndex(0);
     return () => {
       AudioService.stopAudio();
       setIsPlaying(false);
@@ -128,7 +131,7 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
     if (status.playCount > 0) {
       setListenCount((prev) => {
         const next = prev + 1;
-        if (next >= 3 && onCompleted3Times) onCompleted3Times();
+        if (prev < 3 && next >= 3 && onCompleted3Times) onCompleted3Times();
         return next;
       });
     }
@@ -175,7 +178,7 @@ export const AudioPlayerComponent: React.FC<AudioPlayerComponentProps> = ({
   const incrementManualCount = () => {
     setListenCount(prev => {
       const next = prev >= 3 ? 3 : prev + 1;
-      if (next >= 3 && onCompleted3Times) {
+      if (prev < 3 && next >= 3 && onCompleted3Times) {
         onCompleted3Times();
       }
       return next;
