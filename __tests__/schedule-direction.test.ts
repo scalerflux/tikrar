@@ -118,4 +118,8 @@ describe('getDisplaySurahName', () => {
     expect(name).not.toBe('Group of Surahs');
     expect(name).toContain('An-Nas');
   });
+  it('marks a surah that is only partly inside the face with its ayahs', () => {
+    expect(getDisplaySurahName(getScheduleItem(1, 'backward')!)).toBe('Al-Falaq 5 · An-Nas');
+    expect(getDisplaySurahName(getScheduleItem(2, 'backward')!)).toBe('Al-Ikhlas · Al-Falaq 1-4');
+  });
 });

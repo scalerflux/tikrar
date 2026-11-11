@@ -366,15 +366,34 @@ export function getAyahRangeForFace(faceNumber: string): AyahRange | null {
 /**
  * A readable title for a schedule day. The source data labels the short
  * surahs at the end of the Mus-haf as "Group of Surahs", so those faces are
- * named after the surahs they actually contain.
+ * named after the surahs they actually contain. A half-page can cut a surah
+ * in two, so a surah that is only partly inside the face carries its ayah
+ * range ("Al-Falaq 5 · An-Nas") instead of looking like the whole surah.
  */
 export function getDisplaySurahName(item: Pick<ScheduleItem, 'surahName' | 'faceNumber'>): string {
   if (item.surahName !== 'Group of Surahs') return item.surahName;
-  const numbers = [...new Set(getAyahListForFace(item.faceNumber).map((a) => a.surah))];
-  const names = numbers
-    .map((n) => SURAH_LIST[n - 1]?.transliteration)
-    .filter((n): n is string => Boolean(n));
-  if (names.length === 0) return item.surahName;
-  if (names.length <= 2) return names.join(' · ');
-  return `${names[0]} to ${names[names.length - 1]}`;
+
+  const bySurah = new Map<number, number[]>();
+  for (const a of getAyahListForFace(item.faceNumber)) {
+    const list = bySurah.get(a.surah) ?? [];
+    list.push(a.ayah);
+    bySurah.set(a.surah, list);
+  }
+
+  const parts: string[] = [];
+  for (const [surah, ayahs] of bySurah) {
+    const meta = SURAH_LIST[surah - 1];
+    if (!meta) continue;
+    if (ayahs.length >= meta.totalVerses) {
+      parts.push(meta.transliteration);
+      continue;
+    }
+    const first = ayahs[0];
+    const last = ayahs[ayahs.length - 1];
+    parts.push(first === last ? `${meta.transliteration} ${first}` : `${meta.transliteration} ${first}-${last}`);
+  }
+
+  if (parts.length === 0) return item.surahName;
+  if (parts.length <= 2) return parts.join(' · ');
+  return `${parts[0]} to ${parts[parts.length - 1]}`;
 }
