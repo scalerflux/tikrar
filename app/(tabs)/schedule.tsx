@@ -18,7 +18,8 @@ export default function ScheduleScreen() {
   const [currentDay, setCurrentDay] = useState(1);
   const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const flatListRef = useRef<FlatList>(null);
-  const headerHeightRef = useRef(0);
+  // Kept in state so FlatList recomputes row offsets when the heat map expands.
+  const [headerHeight, setHeaderHeight] = useState(0);
   const scheduleData = useMemo<ScheduleItem[]>(() => getSchedule(direction), [direction]);
   const completedSet = useMemo(() => new Set(completedDays), [completedDays]);
 
@@ -63,7 +64,7 @@ export default function ScheduleScreen() {
     if (index < 0 || !flatListRef.current) return;
     // Rows have a fixed height, so the offset is exact and does not depend on
     // which rows FlatList has already measured.
-    const offset = headerHeightRef.current + index * ROW_STRIDE - 160;
+    const offset = headerHeight + index * ROW_STRIDE - 160;
     flatListRef.current.scrollToOffset({ offset: Math.max(0, offset), animated: true });
   };
 
@@ -149,8 +150,11 @@ export default function ScheduleScreen() {
           maxToRenderPerBatch={30}
           windowSize={10}
           keyboardShouldPersistTaps="handled"
+          // Rows have a fixed height. Telling FlatList lets it jump to any day
+          // without first rendering every row before it.
+          getItemLayout={(_, index) => ({ length: ROW_STRIDE, offset: headerHeight + index * ROW_STRIDE, index })}
           ListHeaderComponent={
-            <View onLayout={(e) => { headerHeightRef.current = e.nativeEvent.layout.height; }}>
+            <View onLayout={(e) => setHeaderHeight(e.nativeEvent.layout.height)}>
               <CalendarHeatMap completedDays={completedDays} currentDay={currentDay} />
               <View style={styles.searchBar}>
                 <Ionicons name="search-outline" size={18} color={Theme.colors.textMuted} />
@@ -314,6 +318,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 999,
     overflow: 'hidden',
+    flexShrink: 0,
   },
   statusBadgeToday: {
     color: Theme.colors.bgDark,
@@ -336,6 +341,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
     flexShrink: 1,
+    minWidth: 0,
   },
   faceNum: {
     color: Theme.colors.textSecondary,
@@ -343,7 +349,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   rightCol: {
-    maxWidth: 104,
+    maxWidth: 96,
+    flexShrink: 0,
     alignItems: 'flex-end',
   },
   rangeText: {

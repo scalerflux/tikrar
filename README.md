@@ -1,62 +1,101 @@
+<div align="center">
+
+<img src="assets/images/icon.png" alt="Tikrar app icon" width="112" />
+
 # Tikrar
 
-Tikrar is a focused Quran memorization companion for building a consistent hifz routine. It combines a daily revision plan with progress tracking, audio/voice support, tafseer, ustad sessions, and gentle reminders.
+**A daily companion for memorizing the Quran with the 1,206-day Tikrar program.**
 
-[Download the latest Android APK](https://github.com/scalerflux/tikrar/releases/download/v1.0.8-local/Tikrar-1.0.8-local.apk) · [View the v1.0.8-local release](https://github.com/scalerflux/tikrar/releases/tag/v1.0.8-local)
+[![CI](https://github.com/scalerflux/tikrar/actions/workflows/ci.yml/badge.svg)](https://github.com/scalerflux/tikrar/actions/workflows/ci.yml)
+[![Latest release](https://img.shields.io/github/v/release/scalerflux/tikrar?label=release&color=E3B95B)](https://github.com/scalerflux/tikrar/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-E3B95B)](LICENSE)
+![Platform: Android](https://img.shields.io/badge/platform-Android-3DD6A3)
 
-## What is included
+[**Download the latest APK**](https://github.com/scalerflux/tikrar/releases/latest) · [The program guide (PDF)](docs/Tikrar-0.5.pdf) · [Report a problem](https://github.com/scalerflux/tikrar/issues)
 
-- A daily memorization and revision view with phase-aware schedule cards.
-- A choice of starting point: from Al-Fatihah in Mus-haf order, or from An-Nas back to Al-Fatihah with the short surahs kept whole.
-- A Fajr-to-Fajr day, so work done after midnight still counts for the same portion.
-- Progress history and a calendar heat map for consistency at a glance.
-- Audio playback, tafseer/translation support, and voice recording for self-review.
-- Optional ustad setup during onboarding, with custom weekly days, local times, calendar events, and session reminders.
-- Daily motivational reminders and separate ustad-session reminders.
-- Backup and restore support for settings and local progress data.
-- Offline-first local storage using SQLite and AsyncStorage.
-- Arabic-friendly dark UI designed for focused reading and low-distraction use.
+</div>
 
-## Run locally
+<br />
 
-Requirements: Node.js 20+, npm, and Expo Go or an Android emulator/device.
+<p align="center">
+  <img src="docs/screenshots/today.jpg" alt="Today screen with the day's portion, streak and time left until Fajr" width="23%" />
+  &nbsp;
+  <img src="docs/screenshots/phases.jpg" alt="The seven daily phases with the 40 repetition counter open" width="23%" />
+  &nbsp;
+  <img src="docs/screenshots/progress.jpg" alt="Progress screen with a ring, faces done and streaks" width="23%" />
+  &nbsp;
+  <img src="docs/screenshots/schedule.jpg" alt="Schedule list showing done days and today" width="23%" />
+</p>
+
+## What it is
+
+Tikrar follows the memorization program from Tikrar.net in Madinah. The Quran is split into 1,206 half-pages, called faces. Each day you memorize one new face and revise what came before it. The app tells you what today's portion is, walks you through the day's phases, and keeps track of what you have finished.
+
+The app does not contain the Mus-haf text. You read and memorize from your own printed Madinah Mus-haf.
+
+## The daily routine
+
+Every day has the same seven phases, taken from the program's timetable.
+
+| # | Phase | What you do |
+|---|-------|-------------|
+| 1 | Yesterday's repetition | Recite yesterday's face 5 times from memory. |
+| 2 | Listening | Listen to today's face 3 times while following the Mus-haf. |
+| 3 | Tafseer and meaning | Read the meaning and the tafseer of today's face. |
+| 4 | Voice recording | Record yourself 3 times from memory, then check the recordings against the Mus-haf. |
+| 5 | Repetition | Repeat the new face 40 times. The app counts for you. |
+| 6 | Connection | Recite everything from the last 30 days once. Starts on day 3. |
+| 7 | Revision | Recite your slice of older memorization. Starts on day 33 and cycles every 6 days. |
+
+A day runs from Fajr to the next Fajr, so work you finish after midnight still counts for the same portion.
+
+## Features
+
+- **Two starting points.** Begin at Al-Fatihah and follow the Mus-haf, or begin at An-Nas and work back. Going backward, the short surahs are kept whole and every surah is still read from its beginning.
+- **Audio by ayah.** Pick a reciter, play today's face, and tap any ayah to jump to it.
+- **Meaning alongside.** The Hilali and Muhsin Khan translation of today's face, saved on the device after the first load.
+- **Voice recorder.** Three takes a day, each saved separately so you can compare them.
+- **Progress.** A ring for the whole Quran, a count per surah, current and best streaks, and a 1,206-day heat map.
+- **Ustad sessions.** Set your teacher's days and time, get a reminder before class, add the sessions to your calendar, and log what you recited.
+- **Honest accountability.** A missed day asks for a reason. Days missed without one are counted.
+- **Backup and restore.** Export your progress and settings as a file and import it on another phone.
+- **Already memorized some?** Enter the page you have reached and the app starts you from the next face.
+
+## Install on Android
+
+1. Open the [latest release](https://github.com/scalerflux/tikrar/releases/latest) in your phone's browser.
+2. Tap the `.apk` file under Assets.
+3. Android's installer opens and asks you to confirm. If it asks, allow your browser to install unknown apps.
+
+No Play Store, Expo Go or account is needed.
+
+## Run it locally
+
+You need Node.js 20.19 or newer and npm, plus Expo Go or an Android emulator.
 
 ```bash
 npm install
+```
+
+```bash
 npm start
 ```
 
-Useful commands:
+Checks:
 
 ```bash
 npm run typecheck
-npm test -- --runInBand
-npx expo-doctor
-npx expo export --platform web
 ```
-
-To run a native Android development build:
 
 ```bash
-npm run android
+npm test
 ```
 
-## Install the Android APK directly
+## Build the APK
 
-The repository builds its own APK with the workflow at [`.github/workflows/android-apk.yml`](.github/workflows/android-apk.yml). It needs no Expo account and no secrets.
+**On GitHub.** Open **Actions → Android APK → Run workflow**, keep the branch as `main`, and enter a version such as `1.1.0`. The run builds the APK with Gradle and attaches it to a release named after the version. It needs no Expo account and no secrets. Running it again for the same version replaces the APK on that release.
 
-1. Open **Actions → Android APK → Run workflow**.
-2. Keep the branch as `main`. Enter a version such as `1.1.0`, or leave it empty to use the version in `app.json`.
-3. When the run finishes, open the release it created and tap the `.apk` asset from your Android browser.
-4. Android's built-in package installer will open and ask you to confirm installation. If prompted, allow your browser to install unknown apps. No Expo Go, store app, or separate installer is required.
-
-The APK is a normal Android package. Android does not allow a website to silently install an APK, so the final confirmation screen is always controlled by the system package installer.
-
-Running the workflow again for the same version replaces the APK on that release. Every push to `main` also runs the typecheck and tests through [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
-
-## Build an APK from a terminal
-
-With the Android SDK and Java 17 installed:
+**On your machine.** With the Android SDK and Java 17 installed:
 
 ```bash
 npx expo prebuild --platform android --clean
@@ -66,23 +105,34 @@ npx expo prebuild --platform android --clean
 cd android && ./gradlew assembleRelease
 ```
 
-The APK is written to `android/app/build/outputs/apk/release/`. An EAS project is also configured in `app.json` and `eas.json` if you prefer `npm run build:apk`, which needs an Expo account.
+The APK is written to `android/app/build/outputs/apk/release/`.
+
+Every push to `main` also runs the typecheck and tests through [`ci.yml`](.github/workflows/ci.yml).
 
 ## Data and privacy
 
-Tikrar keeps schedule, reminder, session, and progress data on the device by default. Audio recordings and backups are handled through the device's local file/sharing APIs. No account is required to use the core memorization workflow.
+Your schedule, progress, excuses, recordings and settings stay on your phone. There is no account and no server of ours. The app goes online for two things only: streaming recitation audio, and fetching the translation of a page the first time you open it.
 
 ## Project structure
 
 ```text
-app/                 Expo Router screens and onboarding
-components/          Today, schedule, progress, and reusable UI
-database/             SQLite schema and local persistence
-services/              Audio, backup, reminders, translation, and sessions
-utils/                Schedule, timezone, reminder, and validation helpers
-__tests__/             Unit tests for core behavior
+app/           Screens and onboarding (Expo Router)
+components/    Today, schedule and progress building blocks
+constants/     Colours, spacing and other design tokens
+data/          The 1,206-day timetable, surah list and daily reminders
+database/      SQLite storage with an AsyncStorage fallback
+services/      Audio, recording, backup, reminders, calendar and translation
+utils/         Schedule maths, face parsing and validation
+__tests__/     Unit tests for the schedule and core behaviour
+docs/          The program guide and screenshots
 ```
+
+Built with Expo, React Native and TypeScript.
+
+## Credits
+
+The memorization method, preconditions and timetable belong to the Tikrar program of Madinah. See [www.Tikrar.net](https://www.tikrar.net) or write to Info@Tikrar.net. The [program guide](docs/Tikrar-0.5.pdf) in this repository is theirs. The app's timetable was checked against it row by row.
 
 ## License
 
-Tikrar's source code is released under the [MIT License](LICENSE). Third-party dependencies, bundled media, Quran content, translations, recitations, and other externally sourced material remain subject to their respective licenses and attribution requirements.
+The source code is released under the [MIT License](LICENSE). Quran recitations, translations, the program guide and other third-party material remain under their own licenses and terms.

@@ -172,7 +172,7 @@ export default function ProgressScreen() {
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.headerOverline}>Your journey</Text>
         <Text style={styles.headerTitle}>Progress</Text>
-        <Text style={styles.headerSubtitle}>Day {currentDay} of {TOTAL_PROGRAM_DAYS.toLocaleString()} · {streakData.totalCompleted} faces completed</Text>
+        <Text style={styles.headerSubtitle}>Day {currentDay} of {TOTAL_PROGRAM_DAYS.toLocaleString()} · {totalFacesCompleted.toLocaleString()} {totalFacesCompleted === 1 ? 'face' : 'faces'} completed</Text>
 
         <View style={styles.viewToggle}>
           <TouchableOpacity
