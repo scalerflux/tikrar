@@ -8,7 +8,7 @@ import { PhaseCard } from '../../components/today/PhaseCard';
 import { AudioPlayerComponent } from '../../components/today/AudioPlayerComponent';
 import { VoiceRecorderComponent } from '../../components/today/VoiceRecorderComponent';
 import { TafseerViewComponent } from '../../components/today/TafseerViewComponent';
-import { getScheduleItem, getDisplaySurahName, getPortionKey, getUstadRecitationItem, calculateCurrentDay, calculateStreak, ScheduleItem, ScheduleDirection, localDateString, programDateString, parseFajrMinutes } from '../../utils/schedule-calculator';
+import { getScheduleItem, getDisplaySurahName, getPortionKey, getUstadRecitationItem, calculateCurrentDay, calculateStreak, TOTAL_PROGRAM_DAYS, ScheduleItem, ScheduleDirection, localDateString, programDateString, parseFajrMinutes } from '../../utils/schedule-calculator';
 import { getReminderForDay, DailyReminder } from '../../utils/reminders';
 import { DailyReminderCard } from '../../components/today/DailyReminderCard';
 import { getDailyProgress, saveDailyProgress, getAllCompletedDaysWithDates, DailyProgressRow, getUserSetting, setUserSetting, loadScheduleDirection } from '../../database/db';
@@ -93,6 +93,7 @@ export default function TodayScreen() {
   const [timeLeftColor, setTimeLeftColor] = useState('#3DD6A3');
   const [direction, setDirection] = useState<ScheduleDirection>('forward');
   const [repCount, setRepCount] = useState(0);
+  const [programComplete, setProgramComplete] = useState(false);
   const fajrMinutesRef = useRef(300);
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const confettiSpin = useRef(new Animated.Value(0)).current;
@@ -175,6 +176,7 @@ export default function TodayScreen() {
 
       const day = calculateCurrentDay(completedDayNumbers);
       setCurrentDay(day);
+      setProgramComplete(new Set(completedDayNumbers.filter((n) => n >= 1 && n <= TOTAL_PROGRAM_DAYS)).size >= TOTAL_PROGRAM_DAYS);
 
       const item = getScheduleItem(day) || getScheduleItem(1);
       setScheduleItem(item);
@@ -357,6 +359,8 @@ export default function TodayScreen() {
 
   const resolveExcuse = async (reason: string, countsAsNegligence: boolean) => {
     if (!pendingExcuse) return;
+    // Already answered (a second tap while the dialog is closing).
+    if (resolvedDatesRef.current.has(pendingExcuse.date)) return;
     resolvedDatesRef.current.add(pendingExcuse.date);
     if (countsAsNegligence) {
       const next = await NegligenceService.increment();
@@ -371,8 +375,9 @@ export default function TodayScreen() {
       return;
     }
     await NegligenceService.setLastAppOpen(programToday());
+    // Keep the last missed day in state so the text does not blank out while
+    // the dialog fades away.
     setShowExcusePrompt(false);
-    setPendingExcuse(null);
     setExcuseInput('');
   };
 
@@ -443,6 +448,38 @@ export default function TodayScreen() {
           </View>
           <Text style={styles.celebrationHint}>Come back tomorrow for your next face. Rest well.</Text>
         </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (programComplete) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, styles.completeContent]}>
+          <View style={styles.celebrationBigTick}>
+            <Ionicons name="ribbon" size={44} color={Theme.colors.bgDark} />
+          </View>
+          <Text style={styles.celebrationTitle}>All 1,206 days complete</Text>
+          <Text style={styles.celebrationSubtitle}>
+            Alhamdulillah. You have memorized every face of the program. May Allah make the Quran an evidence for you.
+          </Text>
+          <View style={styles.completeCard}>
+            <Text style={styles.detailTitle}>What the program asks next</Text>
+            <Text style={styles.completeText}>
+              After you complete the memorization of the whole Quran, you must complete the revision of the whole Quran every 6 days for 6 months.
+            </Text>
+            <Text style={styles.completeText}>
+              The connection and revision are never left off, so keep reciting your last 30 days of memorization once a day while they settle.
+            </Text>
+            <Text style={styles.completeText}>
+              Stay with a firm shaykh who follows up with you after memorization, as he did before it.
+            </Text>
+          </View>
+          <View style={styles.celebrationBadge}>
+            <Ionicons name="flame" size={16} color={Theme.colors.bgDark} />
+            <Text style={styles.celebrationBadgeText}>{streak} day streak</Text>
+          </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -535,7 +572,7 @@ export default function TodayScreen() {
         <PhaseCard
           phaseNumber={3}
           title="Tafseer & Meaning"
-          subtitle="Read the meaning, then the tafseer (As-Sa'di)"
+          subtitle="Read the meaning, then the tafseer of today's face"
           iconName="book-outline"
           isCompleted={progress.phaseTafseer === 1}
           onToggleComplete={() => togglePhase('phaseTafseer')}
@@ -726,6 +763,9 @@ const styles = StyleSheet.create({
   repBtn: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, backgroundColor: Theme.colors.accentGold, paddingVertical: 14, borderRadius: Theme.borderRadius.md },
   repBtnText: { color: Theme.colors.bgDark, fontSize: 15, fontWeight: '800' },
   repUndo: { width: 52, alignItems: 'center', justifyContent: 'center', borderRadius: Theme.borderRadius.md, borderWidth: 1, borderColor: Theme.colors.border, backgroundColor: Theme.colors.inputBg },
+  completeContent: { alignItems: 'center', paddingTop: Theme.spacing.xl },
+  completeCard: { alignSelf: 'stretch', backgroundColor: Theme.colors.bgCard, borderRadius: Theme.borderRadius.lg, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder, padding: Theme.spacing.md, marginTop: Theme.spacing.lg },
+  completeText: { color: Theme.colors.textSecondary, fontSize: 14.5, lineHeight: 22, marginTop: 10 },
   tourPillRow: { flexDirection: 'row', marginTop: 4, marginBottom: 2 },
   tourPill: { backgroundColor: Theme.colors.accentGoldMuted, paddingHorizontal: 8, paddingVertical: 2, borderRadius: Theme.borderRadius.sm, borderWidth: 1, borderColor: Theme.colors.accentGoldBorder },
   tourPillText: { color: Theme.colors.accentGold, fontSize: 12, fontWeight: '700' },

@@ -40,11 +40,12 @@ const PRECONDITIONS_11_20 = [
 const DEFINITIONS_A = [
   { k: 'Repetition of Yesterday', d: 'Repeating what was memorized yesterday from memory 5 times.' },
   { k: 'Listening', d: 'Listen to the page to be memorized 3 times by a reciter who has mastered tajweed while following the Mus-haf.' },
-  { k: 'Tafseer', d: 'Read the tafseer of the page to be memorized to enhance awareness of meanings. Recommended: Hilali-Khan and As-Sa\'di.' },
+  { k: 'Tafseer', d: 'Read the tafseer of the page to be memorized to enhance awareness of meanings. The program recommends Al-Mukhtasar fi at-Tafsir (English translation) and Tafsir Al-Muyassar (Arabic).' },
 ];
 
 const DEFINITIONS_B = [
   { k: 'Recording', d: 'Record yourself reciting the memorized page 3 times from memory without looking, then listen while looking to ensure no errors. Repeat if even one mistake.' },
+  { k: 'Repetition', d: 'Repeat the new face 40 times. This is the Repetition column of the timetable, and the app counts the 40 for you.' },
   { k: 'Connection (Rabt)', d: 'Reciting all perfected pages over the previous 30 days from memory, one time, without looking.' },
   { k: 'Revision', d: 'Reciting old memorization that has exited the Connection window. Complete the old portion every 6 days.' },
   { k: 'Circuit', d: 'Every completion of your old memorization is considered a circuit. The more you progress, the more pages are added.' },
@@ -293,8 +294,8 @@ export default function OnboardingScreen() {
 
         {page === 5 && (
           <View style={styles.card}>
-            <Text style={styles.h2}>Definitions 4 to 7</Text>
-            <Text style={styles.sub}>The three that perfect and preserve.</Text>
+            <Text style={styles.h2}>Definitions 4 to 8</Text>
+            <Text style={styles.sub}>The four that perfect and preserve.</Text>
             {DEFINITIONS_B.map((d) => (
               <View key={d.k} style={styles.defCard}><Text style={styles.defName}>{d.k}</Text><Text style={styles.defDesc}>{d.d}</Text></View>
             ))}

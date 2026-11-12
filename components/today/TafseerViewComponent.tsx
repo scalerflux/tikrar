@@ -59,7 +59,8 @@ export const TafseerViewComponent: React.FC<TafseerViewComponentProps> = ({ face
       )}
 
       <Text style={styles.note}>
-        After reading the meaning, read the tafseer of these verses from your copy of Tafseer As-Sa'di, then check this phase off.
+        The program recommends Al-Mukhtasar fi at-Tafsir (English) and Tafsir Al-Muyassar (Arabic).{' '}
+        After reading the meaning, read the tafseer of these verses from your own copy, then check this phase off.
       </Text>
     </View>
   );
