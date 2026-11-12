@@ -1,0 +1,116 @@
+name: Android APK
+
+# Builds an installable APK with Gradle on the runner and attaches it to a
+# GitHub Release. Run it by hand from the Actions tab. No Expo account or
+# secrets are needed.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Release version without the leading v (for example 1.1.0). Leave empty to use the version in app.json."
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-apk
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build and release APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v4
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck and tests
+        run: |
+          npm run typecheck
+          npm test -- --ci --runInBand
+
+      - name: Resolve version
+        id: version
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          version="$INPUT_VERSION"
+          if [ -z "$version" ]; then
+            version="$(node -p 'require("./app.json").expo.version')"
+          fi
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "Version '$version' is not a valid release version" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=v$version" >> "$GITHUB_OUTPUT"
+          echo "file=Tikrar-$version.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Generate the Android project
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: Build APK with Gradle
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Collect APK
+        shell: bash
+        env:
+          FILE: ${{ steps.version.outputs.file }}
+        run: |
+          apk_path="$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+          if [ -z "$apk_path" ]; then
+            echo "No APK found" >&2
+            ls -R android/app/build/outputs 2>&1 | head -n 100
+            exit 1
+          fi
+          cp "$apk_path" "$FILE"
+          ls -lh "$FILE"
+
+      - name: Keep APK as a run artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.version.outputs.file }}
+          path: ${{ steps.version.outputs.file }}
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          FILE: ${{ steps.version.outputs.file }}
+        run: |
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            # Re-running for the same version replaces the APK on that release.
+            gh release upload "$TAG" "$FILE" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$FILE" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "Tikrar $TAG" \
+              --generate-notes
+          fi

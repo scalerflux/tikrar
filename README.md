@@ -43,27 +43,30 @@ npm run android
 
 ## Install the Android APK directly
 
-The repository includes a reproducible EAS build workflow at [`.github/workflows/android-apk-release.yml`](.github/workflows/android-apk-release.yml). It creates an installable APK and attaches it to a GitHub Release.
+The repository builds its own APK with the workflow at [`.github/workflows/android-apk.yml`](.github/workflows/android-apk.yml). It needs no Expo account and no secrets.
 
-1. Create an Expo access token in your Expo account.
-2. Add it to GitHub as an Actions secret named `EXPO_TOKEN`.
-3. Open **Actions → Android APK Release → Run workflow**.
-4. Open the created release and tap the `.apk` asset from your Android browser.
-5. Android’s built-in package installer will open and ask you to confirm installation. If prompted, allow your browser to install unknown apps; no Expo Go, store app, or separate installer is required.
+1. Open **Actions → Android APK → Run workflow**.
+2. Keep the branch as `main`. Enter a version such as `1.1.0`, or leave it empty to use the version in `app.json`.
+3. When the run finishes, open the release it created and tap the `.apk` asset from your Android browser.
+4. Android's built-in package installer will open and ask you to confirm installation. If prompted, allow your browser to install unknown apps. No Expo Go, store app, or separate installer is required.
 
 The APK is a normal Android package. Android does not allow a website to silently install an APK, so the final confirmation screen is always controlled by the system package installer.
 
-The default release version comes from `app.json` plus the GitHub run number. You can provide a version such as `1.0.1` when manually dispatching the workflow.
+Running the workflow again for the same version replaces the APK on that release. Every push to `main` also runs the typecheck and tests through [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Build an APK from a terminal
 
-The EAS project is configured in `app.json` and `eas.json`:
+With the Android SDK and Java 17 installed:
 
 ```bash
-npx eas-cli@latest build --platform android --profile production-apk
+npx expo prebuild --platform android --clean
 ```
 
-The `production-apk` profile intentionally produces an APK for direct phone installation. The `production` profile produces an Android App Bundle for Play Store submission.
+```bash
+cd android && ./gradlew assembleRelease
+```
+
+The APK is written to `android/app/build/outputs/apk/release/`. An EAS project is also configured in `app.json` and `eas.json` if you prefer `npm run build:apk`, which needs an Expo account.
 
 ## Data and privacy
 
